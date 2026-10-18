@@ -1,0 +1,966 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DIAMOND Bilyard</title>
+<meta name="theme-color" content="#6d28d9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="DIAMOND">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --bg:#f5f2fa; --surface:#ffffff; --sunken:#ece7f5; --fg:#1c1530; --muted:#6b6280; --line:#ddd5ea;
+  --felt:#7c3aed; --felt-ink:#ffffff; --felt-soft:#ede4fe; --grad:linear-gradient(135deg,#6d28d9 0%,#a21caf 55%,#db2777 100%); --start:#16a34a;
+  --busy:#ea580c; --busy-bg:#fff0e6; --pause:#0284c7; --pause-bg:#e0f2fe;
+  --b1:#e3a812; --b2:#1d4ed8; --b3:#c0262d; --b4:#e8590c;
+  --danger:#b91c1c; --danger-bg:#fde5e5; --ok:#15803d; --ok-bg:#ddf3e4; --warn:#a35f00; --warn-bg:#fbefd7;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#100b18; --surface:#1b1427; --sunken:#150f1f; --fg:#efeaf7; --muted:#a69cba; --line:#2f2542;
+  --felt:#8b5cf6; --felt-ink:#ffffff; --felt-soft:#2a1d4a; --grad:linear-gradient(135deg,#5b21b6 0%,#86198f 55%,#be185d 100%); --start:#22c55e;
+  --busy:#fb923c; --busy-bg:#33200f; --pause:#38bdf8; --pause-bg:#0f2a3a;
+  --b1:#f2bd2e; --b2:#5b8cff; --b3:#ef4c53; --b4:#fb7a3c;
+  --danger:#f87171; --danger-bg:#3a1a1a; --ok:#4ade80; --ok-bg:#15301f; --warn:#f0bf5a; --warn-bg:#3a2e14; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent;padding-bottom:env(safe-area-inset-bottom,0px)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--b2);outline-offset:2px}
+.num,.rows,.li{font-variant-numeric:tabular-nums}
+.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{position:sticky;top:0;z-index:5;background:var(--grad);color:var(--felt-ink);padding-top:env(safe-area-inset-top,0px)}
+header .wrap{padding-block:10px 0}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+header h1{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:.04em;margin:0;text-transform:uppercase;line-height:1}
+.day{text-align:right}
+.day small{display:block;font-size:10px;opacity:.8;letter-spacing:.08em;text-transform:uppercase}
+.day b{font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
+.sub{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;font-size:12px}
+.sync{display:flex;align-items:center;gap:6px;font-weight:600;opacity:.9;min-width:0}
+.sync i{width:8px;height:8px;border-radius:50%;background:#4ade80;flex:none}
+.sync.off i{background:#f87171} .sync.pend i{background:#fbbf24}
+.me{font-size:12px;font-weight:700;border-radius:99px;padding:4px 10px;background:rgba(255,255,255,.16);color:#fff;border:0;max-width:55%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tabs{display:flex;gap:2px;margin-top:6px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:1 0 auto;border:0;background:none;padding:10px 10px;font-size:14px;white-space:nowrap;font-weight:700;color:rgba(255,255,255,.7);border-bottom:3px solid transparent}
+.tabs button[aria-current="page"]{color:#fff;border-bottom-color:#fde68a}
+.badge{display:inline-block;min-width:18px;border-radius:99px;background:#ef4444;color:#fff;font-size:11px;padding:0 5px;margin-left:4px;vertical-align:1px}
+main{padding-block:14px 48px;display:flex;flex-direction:column;gap:14px}
+h3{font-family:var(--display);font-size:20px;margin:0;text-transform:uppercase;letter-spacing:.03em}
+.note{font-size:13px;color:var(--muted);margin:0}
+.warnTxt{color:var(--danger);font-weight:700}
+.grid{display:grid;gap:12px}
+@media(min-width:560px){.grid{grid-template-columns:repeat(2,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.card.on{border-color:var(--busy);box-shadow:0 0 0 1px var(--busy)}
+.card.pz{border-color:var(--pause);box-shadow:0 0 0 1px var(--pause)}
+.card.alarm{border-color:var(--danger);box-shadow:0 0 0 2px var(--danger);animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 5px var(--danger)}}
+.top{display:flex;align-items:center;gap:10px}
+.ball{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--c)}
+.ball span{width:18px;height:18px;border-radius:50%;background:#fff;color:#111;font:700 12px/18px var(--display);text-align:center}
+.top h2{margin:0;font-family:var(--display);font-size:22px;font-weight:600;line-height:1.1}
+.rate{font-size:12px;color:var(--muted)}
+.pill{margin-left:auto;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:99px;background:var(--sunken);color:var(--muted);white-space:nowrap}
+.on .pill{background:var(--busy-bg);color:var(--busy)} .pz .pill{background:var(--pause-bg);color:var(--pause)} .alarm .pill{background:var(--danger);color:#fff}
+.clock{font-family:var(--display);font-size:46px;font-weight:600;line-height:1;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.off .clock{color:var(--muted);opacity:.45}
+.pz .clock{color:var(--pause)}
+.lim{font-size:13px;font-weight:700;color:var(--muted);margin-top:-4px}
+.lim.w{color:var(--warn)} .lim.x{color:var(--danger)}
+.alarmBox{background:var(--danger);color:#fff;border-radius:10px;padding:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.alarmBox b{flex:1 1 100%;font-size:16px}
+.alarmBox .btn{background:#fff;color:var(--danger);flex:1}
+.rows{display:grid;gap:4px;font-size:14px}
+.rows div{display:flex;justify-content:space-between;gap:8px}
+.rows .tot{font-weight:800;border-top:1px dashed var(--line);padding-top:6px;margin-top:2px;font-size:16px}
+.rows .m{color:var(--muted)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btns .btn{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:15px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:11px 14px;min-height:44px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.go{background:var(--felt);border-color:var(--felt);color:var(--felt-ink)}
+.btn.start{background:var(--start);border-color:var(--start);color:#fff}
+.btn.stop{background:var(--busy);border-color:var(--busy);color:#fff}
+.btn.ghost{background:var(--sunken);border-color:transparent}
+.btn.danger{background:var(--danger-bg);border-color:transparent;color:var(--danger)}
+.btn.wide{width:100%}
+.mini{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.mini .btn{font-size:12px;padding:8px 4px;min-height:40px;flex-direction:column;gap:1px;background:var(--sunken);border-color:transparent}
+.mini .btn svg{width:18px;height:18px}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid var(--line);font-size:14px;width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;color:inherit}
+.li:first-child{border-top:0}
+.li>div{min-width:0}
+.li .m{color:var(--muted);font-size:12px}
+.li b{white-space:nowrap}
+.tag{display:inline-block;font-size:11px;font-weight:800;border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:1px}
+.t-naqd{background:var(--ok-bg);color:var(--ok)} .t-karta{background:#dfe8fd;color:#1d4ed8} .t-nasiya{background:var(--danger-bg);color:var(--danger)}
+@media (prefers-color-scheme:dark){.t-karta{background:#1a2440;color:#8fb0ff}}
+.empty{padding:22px 14px;color:var(--muted);font-size:14px;text-align:center}
+.empty b{display:block;color:var(--fg);margin-bottom:2px}
+.kpi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.kpi div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.kpi small{display:block;font-size:12px;color:var(--muted);font-weight:700}
+.kpi b{font-family:var(--display);font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi .full{grid-column:1/-1}
+.kpi .hero{background:var(--grad);color:var(--felt-ink);border:0}
+.kpi .hero small{color:rgba(255,255,255,.8)} .kpi .hero b{font-size:34px}
+.big{font-family:var(--display);font-size:34px;font-weight:700}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:90vh;overflow:auto;border-radius:18px 18px 0 0;
+  padding:18px max(16px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mi{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:700}
+.mi small{color:var(--muted);font-weight:600}
+.mi small.z{color:var(--danger)}
+.ord{display:flex;align-items:center;gap:8px;font-size:14px;font-variant-numeric:tabular-nums}
+.ord span:first-child{flex:1;min-width:0}
+.sq{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--sunken);font-size:20px;font-weight:700;line-height:1}
+.receipt{border:1px dashed var(--line);border-radius:12px;padding:12px}
+label.f{display:grid;gap:4px;font-size:13px;color:var(--muted);font-weight:700}
+.inp{font:600 16px var(--body);padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%;min-width:0}
+.inp:focus{outline:none;border-color:var(--felt);box-shadow:0 0 0 3px var(--felt-soft)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--sunken);border-radius:99px;padding:8px 14px;font-weight:700;min-height:40px}
+.chip[aria-pressed="true"]{background:var(--felt);color:var(--felt-ink);border-color:var(--felt)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.seg{display:flex;gap:6px}
+.seg button{flex:1}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:14px;z-index:40;max-width:calc(100% - 32px);text-align:center;font-weight:600}
+.lg{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);font-size:14px}
+.lg:first-child{border-top:0}
+.lg .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:13px;background:var(--sunken);color:var(--muted)}
+.lg .ic.r{background:var(--danger-bg);color:var(--danger)} .lg .ic.y{background:var(--warn-bg);color:var(--warn)} .lg .ic.g{background:var(--ok-bg);color:var(--ok)}
+.lg small{display:block;color:var(--muted);font-size:12px}
+.dl{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:6px 0 -6px}
+.bar{height:8px;border-radius:4px;background:var(--sunken);overflow:hidden;margin-top:4px}.bar i{display:block;height:100%;background:var(--felt);border-radius:4px}
+pre.copy{white-space:pre-wrap;font-family:var(--body);font-size:13px;background:var(--sunken);border-radius:10px;padding:12px;margin:0;overflow-wrap:anywhere}
+.stk{font-weight:800;border-radius:99px;padding:2px 10px;font-size:13px}
+.s-ok{background:var(--ok-bg);color:var(--ok)} .s-low{background:var(--warn-bg);color:var(--warn)} .s-out{background:var(--danger-bg);color:var(--danger)}
+.pinBig{font-family:var(--display);font-size:40px;font-weight:700;letter-spacing:.15em;text-align:center}
+/* login */
+.gate{min-height:92vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px max(16px,env(safe-area-inset-left,0px));text-align:center}
+.gate h1{font-family:var(--display);font-size:32px;letter-spacing:.06em;margin:0}
+.logo{width:72px;height:72px;border-radius:20px;background:var(--grad);display:grid;place-items:center}
+.dots{display:flex;gap:12px;justify-content:center}
+.dots span{width:16px;height:16px;border-radius:50%;border:2px solid var(--muted)}
+.dots span.f{background:var(--felt);border-color:var(--felt)}
+.pad{display:grid;grid-template-columns:repeat(3,76px);gap:12px;justify-content:center}
+.pad button{height:64px;border-radius:16px;border:1px solid var(--line);background:var(--surface);font-family:var(--display);font-size:28px;font-weight:600}
+.pad button:active{background:var(--felt-soft)}
+.pad .k{background:transparent;border:0;font-size:15px;font-family:var(--body);color:var(--muted)}
+.gate .card{width:100%;max-width:400px;text-align:left}
+.err{color:var(--danger);font-size:14px;margin:0;min-height:1.2em;font-weight:600}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.shake{animation:shake .25s 2}
+</style>
+</head>
+<body>
+
+<div class="gate" id="scrLoad"><div class="logo"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 18 3-18M6 3l3 6 3-6 3 6 3-6"/></svg></div><p class="note" id="loadMsg">Yuklanmoqda…</p></div>
+
+<div class="gate" id="scrSetup" hidden>
+  <div class="logo"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 18 3-18M6 3l3 6 3-6 3 6 3-6"/></svg></div>
+  <h1>DIAMOND</h1>
+  <div class="card">
+    <h3>Birinchi sozlash</h3>
+    <p class="note">Siz bilyardxona egasi bo'lasiz: hamma narsani ko'rasiz, ishchilarga kod berasiz. O'zingiz uchun 6 xonali kod o'ylab toping.</p>
+    <label class="f">Ismingiz<input class="inp" id="suName" placeholder="Masalan: Siroj"></label>
+    <label class="f">Egasi kodi (6 ta raqam)<input class="inp num" id="suPin" inputmode="numeric" maxlength="6" placeholder="••••••"></label>
+    <p class="err" id="suErr"></p>
+    <button class="btn go wide" id="suBtn">Boshlash</button>
+  </div>
+</div>
+
+<div class="gate" id="scrPin" hidden>
+  <div class="logo"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 18 3-18M6 3l3 6 3-6 3 6 3-6"/></svg></div>
+  <h1>DIAMOND</h1>
+  <p class="note">Kirish kodingizni kiriting</p>
+  <div class="dots" id="dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <p class="err" id="pinErr"></p>
+  <div class="pad" id="pad"></div>
+</div>
+
+<div id="scrApp" hidden>
+  <header><div class="wrap">
+    <div class="hrow">
+      <h1>Diamond</h1>
+      <div class="day"><small>Bugungi tushum</small><b id="dayTotal">0 so'm</b></div>
+    </div>
+    <div class="sub"><div class="sync" id="sync"><i></i><span id="syncTxt">Ulanmoqda…</span></div><button class="me" id="me" data-act="meMenu"></button></div>
+    <nav class="tabs" id="tabs" aria-label="Bo'limlar"></nav>
+  </div></header>
+  <main class="wrap" id="main"></main>
+</div>
+<div id="modal"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, getDoc, getDocFromServer, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, limit, increment, writeBatch, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const fb = initializeApp({
+  apiKey: "AIzaSyBiIO9oJa4C5Md0bK-l2iqUTrPobyzNWFE",
+  authDomain: "siroj-apps.firebaseapp.com",
+  projectId: "siroj-apps",
+  storageBucket: "siroj-apps.firebasestorage.app",
+  messagingSenderId: "237744873377",
+  appId: "1:237744873377:web:a4618fb3c6906500bef5e0"
+});
+const auth = getAuth(fb);
+const db = initializeFirestore(fb, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+
+const C = { meta:"diamond_meta", pins:"diamond_pins", sess:"diamond_sessions", cfg:"diamond_cfg", tables:"diamond_tables", menu:"diamond_menu",
+  games:"diamond_games", debts:"diamond_debts", dlog:"diamond_debtlog", log:"diamond_log", shifts:"diamond_shifts" };
+const ROLES = { egasi:"Egasi", ishchi:"Ishchi" };
+const COLORS = ["var(--b1)","var(--b2)","var(--b3)","var(--b4)"];
+const DEF_TABLES = [{n:"Podval",r:60000,b:"P"},{n:"1-stol",r:50000,b:"1"},{n:"2-stol",r:50000,b:"2"},{n:"Tennis stol",r:30000,b:"T"}];
+const DEF_MENU = [{n:"Coca-Cola 1L",p:12000},{n:"Suv 0.5L",p:3000},{n:"Flesh katta",p:12000}];
+const MONTHS = ["yanvar","fevral","mart","aprel","may","iyun","iyul","avgust","sentabr","oktabr","noyabr","dekabr"];
+const LS = "diamond_session";
+const PAYS = { naqd:"Naqd", karta:"Karta", nasiya:"Nasiya" };
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const grp = n => String(Math.round(+n||0)).replace(/\B(?=(\d{3})+(?!\d))/g," ");
+const fmt = n => grp(n)+" so'm";
+const money = v => { const x = parseInt(String(v ?? "").replace(/\D/g,""),10); return isFinite(x) ? x : 0; };
+const pad2 = n => String(n).padStart(2,"0");
+const hm = t => { const d=new Date(t); return pad2(d.getHours())+":"+pad2(d.getMinutes()); };
+const dayKey = t => { const d=new Date(t); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; };
+const monKey = t => dayKey(t).slice(0,7);
+const dayTxt = k => { const [y,m,d]=k.split("-"); return `${+d}-${MONTHS[+m-1]}`; };
+const dateTxt = t => { const d=new Date(t); return `${d.getDate()}-${MONTHS[d.getMonth()]}, ${hm(t)}`; };
+const clock = ms => { const s=Math.max(0,Math.floor(ms/1000)); return [Math.floor(s/3600),Math.floor(s%3600/60),s%60].map(pad2).join(":"); };
+const durTxt = ms => { const m=Math.ceil(Math.max(0,ms)/60000); return (m>=60?Math.floor(m/60)+" soat ":"")+(m%60)+" daq"; };
+const hoursTxt = ms => { const m=Math.round(ms/60000); return `${Math.floor(m/60)} soat ${m%60} daq`; };
+// O'yin narxi: har boshlangan daqiqa hisoblanadi, 100 so'mgacha yaxlitlanadi
+const gameCost = (ms,rate) => ms<=0 ? 0 : Math.round(Math.ceil(ms/60000)*rate/60/100)*100;
+const ordSum = o => (o||[]).reduce((a,x)=>a+x.p*x.q,0);
+const ordCnt = o => (o||[]).reduce((a,x)=>a+x.q,0);
+let toastT;
+function toast(t){ clearTimeout(toastT); document.querySelector(".toast")?.remove(); const el=document.createElement("div"); el.className="toast"; el.setAttribute("role","status"); el.textContent=t; document.body.append(el); toastT=setTimeout(()=>el.remove(),2800); }
+function show(id){ for (const s of ["scrLoad","scrSetup","scrPin","scrApp"]) $(s).hidden = s!==id; }
+function lsGet(){ try{ return JSON.parse(localStorage.getItem(LS)||"null"); }catch(e){ return null; } }
+function lsSet(v){ try{ v ? localStorage.setItem(LS, JSON.stringify(v)) : localStorage.removeItem(LS); }catch(e){} }
+const failed = e => { console.error(e); toast(e?.code==="permission-denied" ? "Ruxsat yo'q. Egasi bilan bog'laning." : "Saqlab bo'lmadi. Qayta urinib ko'ring."); };
+const ico = {
+  pause:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
+  play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>',
+  move:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14l-4-4M20 16H6l4 4"/></svg>',
+  time:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+};
+
+/* ---------- state ---------- */
+const S = { uid:null, me:null, tab:"tables", cfg:{tables:DEF_TABLES}, T:[{},{},{},{}], menu:{}, today:[], debts:{}, logs:[], pins:[],
+  kassaAt:0, kGames:[], kDlog:[], shifts:[], pend:{}, f:{}, sheet:null };
+const isOwner = () => S.me && S.me.role==="egasi";
+const tbl = i => S.cfg.tables[i] || DEF_TABLES[i];
+const menuList = () => Object.values(S.menu).sort((a,b)=>(a.ord||0)-(b.ord||0) || String(a.n).localeCompare(String(b.n),"uz"));
+const debtList = () => Object.values(S.debts).sort((a,b)=>(b.amount||0)-(a.amount||0) || String(a.name).localeCompare(String(b.name),"uz"));
+const stockSt = m => !m.track ? "" : (m.qty||0)<=0 ? "out" : (m.qty||0)<=(m.min||0) ? "low" : "ok";
+const lowCount = () => menuList().filter(m=>m.track && stockSt(m)!=="ok").length;
+
+/* table time & money */
+const curMs = (t,now) => t.start ? Math.max(0,(t.pausedAt||now) - t.start - (t.pausedMs||0)) : 0;
+const segMs = t => (t.segs||[]).reduce((a,s)=>a+s.ms,0);
+const segCost = t => (t.segs||[]).reduce((a,s)=>a+s.cost,0);
+const playMs = (t,now) => segMs(t)+curMs(t,now);
+const tGame = (t,i,now) => segCost(t)+gameCost(curMs(t,now), tbl(i).r);
+const remMs = (t,now) => t.limitMs ? t.limitMs - playMs(t,now) : null;
+const alarmKey = (t) => (t.first||t.start)+"_"+t.limitMs;
+
+/* ---------- sound ---------- */
+let AC=null;
+function unlockAudio(){ try{ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==="suspended") AC.resume(); }catch(e){} }
+function beep(freq=880, dur=.35){ if(!AC) return; try{ const o=AC.createOscillator(), g=AC.createGain(), t=AC.currentTime; o.type="square"; o.frequency.value=freq; g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.25,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+dur); o.connect(g).connect(AC.destination); o.start(t); o.stop(t+dur+.05); }catch(e){} }
+const acked = new Set(), warned = new Set();
+
+/* ---------- start ---------- */
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+onAuthStateChanged(auth, async user => {
+  if (!user){
+    if (!navigator.onLine){ $("loadMsg").textContent="Birinchi marta kirish uchun internet kerak."; return; }
+    signInAnonymously(auth).catch(e => { $("loadMsg").textContent = "Ulanib bo'lmadi: "+(e.code||e.message); });
+    return;
+  }
+  S.uid = user.uid;
+  const saved = lsGet();
+  if (saved && saved.pin){ S.me = saved; enterApp(); verifySession(); return; }
+  try{ const m = await getDoc(doc(db,C.meta,"setup")); if (!m.exists()){ show("scrSetup"); return; } }
+  catch(e){ if (!navigator.onLine){ $("loadMsg").textContent="Birinchi marta kirish uchun internet kerak."; return; } }
+  showPin();
+});
+async function verifySession(){
+  if (!navigator.onLine || !S.me) return;
+  try{
+    const d = await getDocFromServer(doc(db,C.pins,S.me.pin));
+    if (!d.exists()){ logout("Kodingiz o'chirilgan. Egasidan yangi kod oling."); return; }
+    const p = d.data();
+    if (p.role!==S.me.role || p.name!==S.me.name){ S.me={...S.me, role:p.role, name:p.name}; lsSet(S.me); enterApp(); }
+    const sref = doc(db,C.sess,S.uid);
+    const s = await getDocFromServer(sref).catch(()=>null);
+    if (!s || !s.exists() || s.data().pin!==S.me.pin) await setDoc(sref,{pin:S.me.pin, at:Date.now()});
+  }catch(e){}
+}
+
+/* ---------- setup & PIN ---------- */
+$("suBtn").onclick = async () => {
+  const name=$("suName").value.trim(), pin=$("suPin").value.trim();
+  if (!name) return $("suErr").textContent="Ismingizni yozing.";
+  if (!/^\d{6}$/.test(pin)) return $("suErr").textContent="Kod aynan 6 ta raqam bo'lsin.";
+  $("suBtn").disabled=true; $("suErr").textContent="";
+  try{
+    const now=Date.now(), b=writeBatch(db);
+    b.set(doc(db,C.pins,pin),{name,role:"egasi",at:now});
+    b.set(doc(db,C.meta,"setup"),{at:now});
+    b.set(doc(db,C.meta,"kassa"),{at:now});
+    b.set(doc(db,C.sess,S.uid),{pin,at:now});
+    b.set(doc(db,C.cfg,"main"),{tables:DEF_TABLES});
+    DEF_TABLES.forEach((t,i)=>b.set(doc(db,C.tables,"t"+i),{start:null}));
+    DEF_MENU.forEach((m,k)=>b.set(doc(collection(db,C.menu)),{n:m.n,p:m.p,track:false,qty:0,min:0,ord:k}));
+    await b.commit();
+    S.me={pin,name,role:"egasi"}; lsSet(S.me); enterApp();
+  }catch(e){ $("suBtn").disabled=false; $("suErr").textContent="Saqlab bo'lmadi. Internetni tekshiring."; }
+};
+let entry="";
+function drawDots(){ [...$("dots").children].forEach((s,i)=>s.classList.toggle("f",i<entry.length)); }
+function showPin(){
+  show("scrPin"); entry=""; drawDots(); $("pinErr").textContent="";
+  $("pad").innerHTML = ["1","2","3","4","5","6","7","8","9","","0","⌫"].map(k => k==="" ? "<span></span>" : `<button data-k="${k}" class="${k==="⌫"?"k":""}" aria-label="${k==="⌫"?"O'chirish":k}">${k}</button>`).join("");
+}
+$("pad").onclick = e => { const b=e.target.closest("[data-k]"); if (b) key(b.dataset.k); };
+document.addEventListener("keydown", e => { if (!$("scrPin").hidden){ if (/^\d$/.test(e.key)) key(e.key); else if (e.key==="Backspace") key("⌫"); } });
+function key(k){
+  if (k==="⌫"){ entry=entry.slice(0,-1); drawDots(); return; }
+  if (entry.length>=6) return;
+  entry+=k; drawDots(); $("pinErr").textContent="";
+  if (entry.length===6) tryPin(entry);
+}
+async function tryPin(pin){
+  try{
+    const d=await getDocFromServer(doc(db,C.pins,pin));
+    if (!d.exists()) throw {bad:true};
+    const p=d.data();
+    await setDoc(doc(db,C.sess,S.uid),{pin,at:Date.now()});
+    S.me={pin,name:p.name,role:p.role}; lsSet(S.me); enterApp();
+  }catch(e){
+    entry=""; drawDots();
+    $("pinErr").textContent = e?.bad ? "Kod noto'g'ri" : (navigator.onLine ? "Tekshirib bo'lmadi, qayta urinib ko'ring" : "Kirish uchun internet kerak");
+    $("dots").classList.remove("shake"); void $("dots").offsetWidth; $("dots").classList.add("shake");
+  }
+}
+function logout(msg){
+  const uid=S.uid; lsSet(null); S.me=null; unsub.forEach(u=>u()); unsub=[]; kUnsub.forEach(u=>u()); kUnsub=[]; closeSheet();
+  if (uid) deleteDoc(doc(db,C.sess,uid)).catch(()=>{});
+  showPin(); if (msg) $("pinErr").textContent=msg;
+}
+
+/* ---------- live data ---------- */
+let unsub=[], kUnsub=[], todayUnsub=null, curDay=dayKey(Date.now()), logUnsub=null;
+const pendFlag = (k,snap) => { S.pend[k]=snap.metadata.hasPendingWrites; syncUI(); };
+const denied = e => { if (e.code==="permission-denied") logout("Kodni qayta kiriting."); };
+function enterApp(){
+  show("scrApp");
+  $("me").textContent = S.me.name+" · "+(ROLES[S.me.role]||"");
+  if (!isOwner() && ["report","log","set"].includes(S.tab)) S.tab="tables";
+  unsub.forEach(u=>u()); unsub=[];
+  unsub.push(onSnapshot(doc(db,C.cfg,"main"), s=>{ if (s.exists() && Array.isArray(s.data().tables)) S.cfg={tables:DEF_TABLES.map((d,i)=>({...d,...(s.data().tables[i]||{})}))}; render(); refreshSheet(); }, denied));
+  unsub.push(onSnapshot(collection(db,C.tables),{includeMetadataChanges:true}, s=>{
+    s.docs.forEach(d=>{ const i=+d.id.slice(1); if (i>=0&&i<4) S.T[i]=d.data(); });
+    pendFlag("t",s); render(); refreshSheet();
+  }, denied));
+  unsub.push(onSnapshot(collection(db,C.menu),{includeMetadataChanges:true}, s=>{
+    const n={}; s.docs.forEach(d=>n[d.id]={id:d.id,...d.data()}); S.menu=n; pendFlag("m",s); render(); refreshSheet();
+  }, ()=>{}));
+  unsub.push(onSnapshot(collection(db,C.debts),{includeMetadataChanges:true}, s=>{
+    const n={}; s.docs.forEach(d=>n[d.id]={id:d.id,...d.data()}); S.debts=n; pendFlag("d",s); render(); refreshSheet();
+  }, ()=>{}));
+  unsub.push(onSnapshot(doc(db,C.meta,"kassa"), s=>{
+    const at = s.exists() ? (s.data().at||0) : 0;
+    if (at!==S.kassaAt || !kUnsub.length){ S.kassaAt=at; subKassa(); }
+  }, ()=>{}));
+  if (isOwner()) unsub.push(onSnapshot(collection(db,C.pins), s=>{ S.pins=s.docs.map(d=>({pin:d.id,...d.data()})); if (S.tab==="set") render(); }, ()=>{}));
+  subToday();
+  render();
+}
+function subToday(){
+  if (todayUnsub) todayUnsub();
+  curDay=dayKey(Date.now());
+  todayUnsub = onSnapshot(query(collection(db,C.games),where("day","==",curDay)),{includeMetadataChanges:true}, s=>{
+    S.today=s.docs.map(d=>({id:d.id,...d.data()})); pendFlag("g",s); render();
+  }, ()=>{});
+  unsub.push(()=>{ if (todayUnsub){ todayUnsub(); todayUnsub=null; } });
+}
+function subKassa(){
+  kUnsub.forEach(u=>u()); kUnsub=[];
+  const since=S.kassaAt||0;
+  kUnsub.push(onSnapshot(query(collection(db,C.games),where("at",">=",since)), s=>{ S.kGames=s.docs.map(d=>({id:d.id,...d.data()})); if (S.tab==="kassa") render(); refreshSheet(); }, ()=>{}));
+  kUnsub.push(onSnapshot(query(collection(db,C.dlog),where("at",">=",since)), s=>{ S.kDlog=s.docs.map(d=>({id:d.id,...d.data()})); if (S.tab==="kassa") render(); refreshSheet(); }, ()=>{}));
+  kUnsub.push(onSnapshot(query(collection(db,C.shifts),orderBy("at","desc"),limit(10)), s=>{ S.shifts=s.docs.map(d=>({id:d.id,...d.data()})); if (S.tab==="kassa") render(); }, ()=>{}));
+}
+function subLog(on){
+  if (logUnsub){ logUnsub(); logUnsub=null; }
+  if (!on) return;
+  logUnsub = onSnapshot(query(collection(db,C.log),orderBy("at","desc"),limit(200)), s=>{ S.logs=s.docs.map(d=>d.data()); if (S.tab==="log") render(); }, ()=>{});
+}
+function syncUI(){
+  const off=!navigator.onLine, pend=Object.values(S.pend).some(Boolean);
+  $("sync").className="sync"+(off?" off":pend?" pend":"");
+  $("syncTxt").textContent = off ? (pend?"Internet yo'q · telefonda saqlandi":"Internet yo'q") : pend ? "Yuborilmoqda…" : "Hammasi saqlangan";
+}
+addEventListener("online",()=>{ syncUI(); verifySession(); });
+addEventListener("offline",syncUI);
+
+function logRef(b, type, text, extra={}){ const r=doc(collection(db,C.log)); const v={type,text,by:S.me.name,at:Date.now(),...extra}; b ? b.set(r,v) : setDoc(r,v).catch(()=>{}); }
+const tref = i => doc(db,C.tables,"t"+i);
+
+/* ---------- render ---------- */
+const TABS = () => [["tables","Stollar"],["debts","Nasiya"],["kassa","Kassa"],["bar","Bar"], ...(isOwner()?[["report","Hisobot"],["log","Tarix"],["set","Sozlama"]]:[])];
+function render(){
+  if (!S.me || $("scrApp").hidden) return;
+  const low=lowCount();
+  $("tabs").innerHTML = TABS().map(([k,l])=>`<button data-act="tab" data-k="${k}" ${S.tab===k?'aria-current="page"':""}>${l}${k==="bar"&&low?`<span class="badge">${low}</span>`:""}</button>`).join("");
+  const dayTot = S.today.reduce((a,g)=>a+(g.total||0),0);
+  $("dayTotal").textContent = fmt(dayTot);
+  const main=$("main");
+  const v = ({tables:vTables, debts:vDebts, kassa:vKassa, bar:vBar, report:vReport, log:vLog, set:vSet})[S.tab] || vTables;
+  main.innerHTML = v();
+  if (S.tab==="report") loadReport();
+}
+
+function vTables(){
+  const now=Date.now();
+  const cards = S.T.map((t,i)=>{
+    const c=tbl(i), on=!!t.start, pz=on&&!!t.pausedAt, rem=on?remMs(t,now):null, alarm=on&&rem!==null&&rem<=0&&!pz;
+    const cls = !on?"off":alarm?"alarm":pz?"pz":"on";
+    const pill = !on?"Bo'sh":alarm?"Vaqt tugadi":pz?"Pauza":"Band";
+    if (!on) return `<div class="card off"><div class="top"><div class="ball" style="--c:${COLORS[i]}"><span>${esc(c.b)}</span></div><div><h2>${esc(c.n)}</h2><div class="rate">${fmt(c.r)} / soat</div></div><span class="pill">${pill}</span></div>
+      <div class="clock">00:00:00</div>
+      <button class="btn start wide" data-act="startAsk" data-i="${i}">O'yinni boshlash</button></div>`;
+    const g=tGame(t,i,now), o=ordSum(t.orders);
+    return `<div class="card ${cls}" data-card="${i}">
+      <div class="top"><div class="ball" style="--c:${COLORS[i]}"><span>${esc(c.b)}</span></div><div><h2>${esc(c.n)}</h2><div class="rate">${fmt(c.r)} / soat</div></div><span class="pill">${pill}</span></div>
+      <div class="clock" data-clock="${i}">${clock(playMs(t,now))}</div>
+      ${t.limitMs?`<div class="lim ${rem<=0?"x":rem<=300000?"w":""}" data-lim="${i}">${limTxt(rem)}</div>`:""}
+      ${alarm && !acked.has(alarmKey(t)) ? `<div class="alarmBox"><b>Vaqt tugadi!</b><button class="btn" data-act="ack" data-i="${i}">Eshitdim</button><button class="btn" data-act="extend" data-i="${i}">+30 daq</button></div>`:""}
+      <div class="rows">
+        <div><span class="m">Boshlandi</span><span>${hm(t.first||t.start)}${t.segs&&t.segs.length?` · ${esc(t.segs.map(s=>s.n).join(" → "))} dan`:""}</span></div>
+        <div><span class="m">O'yin</span><span data-gc="${i}">${fmt(g)}</span></div>
+        <div><span class="m">Buyurtma (${ordCnt(t.orders)})</span><span>${fmt(o)}</span></div>
+        <div class="tot"><span>Jami</span><span data-tot="${i}">${fmt(g+o)}</span></div>
+      </div>
+      <div class="btns"><button class="btn" data-act="orders" data-i="${i}">+ Buyurtma</button><button class="btn stop" data-act="stopAsk" data-i="${i}">Tugatish</button></div>
+      <div class="mini">
+        <button class="btn" data-act="pause" data-i="${i}">${pz?ico.play+"Davom":ico.pause+"Pauza"}</button>
+        <button class="btn" data-act="moveAsk" data-i="${i}">${ico.move}Ko'chirish</button>
+        <button class="btn" data-act="limitAsk" data-i="${i}">${ico.time}Vaqt</button>
+        <button class="btn" data-act="cancelAsk" data-i="${i}">${ico.x}Bekor</button>
+      </div>
+    </div>`;
+  }).join("");
+  const list=S.today.slice().sort((a,b)=>b.end-a.end);
+  return `<div class="grid">${cards}</div>
+    <h3 style="margin-top:8px">Bugungi o'yinlar</h3>
+    <div class="list">${list.length?list.map(liGame).join(""):`<div class="empty"><b>Hali yopilgan o'yin yo'q</b>Stolni boshlang, tugatganda hisob shu yerga tushadi.</div>`}</div>`;
+}
+function limTxt(rem){ return rem<=0 ? `Belgilangan vaqtdan ${durTxt(-rem)} o'tdi` : `Qoldi: ${clock(rem)}`; }
+function liGame(g){
+  const tags = ["naqd","karta","nasiya"].filter(k=>g[k]>0).map(k=>`<span class="tag t-${k}">${PAYS[k]}</span>`).join("");
+  return `<button class="li" data-act="gameView" data-id="${g.id}"><div>${esc(g.name)} · ${hm(g.first||g.start)}–${hm(g.end)}${tags}<div class="m">${durTxt(g.ms)} · o'yin ${fmt(g.game)}${g.ord?` · bar ${fmt(g.ord)}`:""}${g.disc?` · chegirma ${fmt(g.disc)}`:""}${g.debtName?` · ${esc(g.debtName)}`:""}</div></div><b>${fmt(g.total)}</b></button>`;
+}
+
+/* tick: clocks, limits, alarms */
+setInterval(()=>{
+  if (!S.me) return;
+  if (dayKey(Date.now())!==curDay) subToday();
+  const now=Date.now(); let needRender=false;
+  S.T.forEach((t,i)=>{
+    if (!t.start) return;
+    const el=document.querySelector(`[data-clock="${i}"]`); if (el) el.textContent=clock(playMs(t,now));
+    const g=tGame(t,i,now), gc=document.querySelector(`[data-gc="${i}"]`), tt=document.querySelector(`[data-tot="${i}"]`);
+    if (gc) gc.textContent=fmt(g); if (tt) tt.textContent=fmt(g+ordSum(t.orders));
+    const rem=remMs(t,now);
+    if (rem===null || t.pausedAt) return;
+    const li=document.querySelector(`[data-lim="${i}"]`); if (li){ li.textContent=limTxt(rem); li.className="lim "+(rem<=0?"x":rem<=300000?"w":""); }
+    const k=alarmKey(t);
+    if (rem<=300000 && rem>0 && !warned.has(k)){ warned.add(k); beep(660,.25); toast(`${tbl(i).n}: 5 daqiqa qoldi`); }
+    if (rem<=0){
+      const card=document.querySelector(`[data-card="${i}"]`);
+      if (S.tab==="tables" && card && !card.classList.contains("alarm")) needRender=true;
+      if (!acked.has(k) && Math.floor(now/1000)%2===0){ beep(880,.3); setTimeout(()=>beep(1100,.3),350); try{ navigator.vibrate&&navigator.vibrate([300,100,300]); }catch(e){} }
+    }
+  });
+  if (needRender) render();
+},1000);
+
+/* ---------- sheets ---------- */
+function openSheet(name, f={}){ S.sheet=name; S.f=f; drawSheet(); }
+function drawSheet(){
+  if (!S.sheet){ $("modal").innerHTML=""; return; }
+  const v = SHEETS[S.sheet]; if (!v){ closeSheet(); return; }
+  const html=v();
+  if (html===null){ closeSheet(); return; }
+  const old=$("modal").querySelector(".sheet"), st=old?old.scrollTop:0;
+  $("modal").innerHTML=`<div class="scrim" data-scrim><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+  if (old) $("modal").querySelector(".sheet").scrollTop=st;
+}
+function refreshSheet(){ if (S.sheet && !document.activeElement?.closest?.(".sheet input,.sheet select,.sheet textarea")) drawSheet(); }
+function closeSheet(){ S.sheet=null; S.f={}; $("modal").innerHTML=""; }
+document.addEventListener("click", e=>{
+  unlockAudio();
+  if (e.target.matches?.("[data-scrim]")){ closeSheet(); return; }
+  const b=e.target.closest("[data-act]"); if (!b || b.disabled) return;
+  const fn=A[b.dataset.act]; if (fn) fn(b.dataset, b);
+});
+document.addEventListener("input", e=>{ const el=e.target; if (el.dataset?.bind){ S.f[el.dataset.bind] = el.type==="checkbox" ? el.checked : el.value; if (el.dataset.live) liveUpdate(); } });
+document.addEventListener("change", e=>{ const el=e.target; if (el.dataset?.bind){ S.f[el.dataset.bind] = el.type==="checkbox" ? el.checked : el.value; if (el.dataset.redraw!==undefined) drawSheet(); } });
+function liveUpdate(){ const fn=LIVE[S.sheet]; if (fn) fn(); }
+const chip = (act, val, cur, label, extra="") => `<button class="chip" data-act="${act}" data-v="${esc(val)}" aria-pressed="${String(val)===String(cur)}" ${extra}>${label}</button>`;
+const inp = (bind, val, attrs="") => `<input class="inp" data-bind="${bind}" value="${esc(val??"")}" ${attrs}>`;
+const SHEETS={}, LIVE={}, A={};
+
+A.tab = d => { S.tab=d.k; subLog(S.tab==="log"); window.scrollTo(0,0); render(); };
+A.close = () => closeSheet();
+A.f = d => { S.f[d.k]=d.v; drawSheet(); };
+
+/* me */
+A.meMenu = () => openSheet("me");
+SHEETS.me = () => `<h3>${esc(S.me.name)}</h3><p class="note">${ROLES[S.me.role]||""} · kod: ${"•".repeat(6)}</p>
+  <button class="btn danger wide" data-act="logout">Chiqish</button><button class="btn ghost wide" data-act="close">Yopish</button>`;
+A.logout = () => { logout(); };
+
+/* start */
+A.startAsk = d => openSheet("start",{i:+d.i});
+SHEETS.start = () => { const i=S.f.i; if (S.T[i]?.start) return null; return `<h3>${esc(tbl(i).n)} — boshlash</h3>
+  <button class="btn start wide" data-act="start" data-m="0" style="min-height:56px;font-size:17px">Ochiq vaqt</button>
+  <p class="note">Yoki oldindan vaqt belgilang — tugaganda telefon signal chaladi:</p>
+  <div class="two">${[30,60,90,120,180].map(m=>`<button class="btn" data-act="start" data-m="${m}">${m<60?m+" daq":(m/60)+" soat"}</button>`).join("")}<button class="btn ghost" data-act="close">Bekor</button></div>`; };
+A.start = d => {
+  const i=S.f.i, now=Date.now(), m=+d.m;
+  if (S.T[i]?.start){ closeSheet(); return; }
+  const b=writeBatch(db);
+  b.set(tref(i),{start:now,first:now,pausedAt:null,pausedMs:0,segs:[],orders:[],limitMs:m?m*60000:null,by:S.me.name});
+  logRef(b,"open",`${tbl(i).n} ochildi${m?` (${durTxt(m*60000)})`:""}`);
+  b.commit().catch(failed); closeSheet();
+};
+
+/* pause */
+A.pause = d => {
+  const i=+d.i, t=S.T[i]; if (!t.start) return; const now=Date.now();
+  if (t.pausedAt){ setDoc(tref(i),{...t,pausedMs:(t.pausedMs||0)+(now-t.pausedAt),pausedAt:null}).catch(failed); logRef(null,"resume",`${tbl(i).n} davom ettirildi`); }
+  else { setDoc(tref(i),{...t,pausedAt:now}).catch(failed); logRef(null,"pause",`${tbl(i).n} pauza qilindi`); }
+};
+
+/* limit */
+A.ack = d => { const t=S.T[+d.i]; acked.add(alarmKey(t)); render(); };
+A.extend = d => { const i=+d.i, t=S.T[i]; const base=Math.max(t.limitMs||0, playMs(t,Date.now())); setDoc(tref(i),{...t,limitMs:base+30*60000}).catch(failed); logRef(null,"limit",`${tbl(i).n}: +30 daq qo'shildi`); };
+A.limitAsk = d => openSheet("limit",{i:+d.i});
+SHEETS.limit = () => { const i=S.f.i, t=S.T[i]; if (!t?.start) return null; const now=Date.now(), rem=remMs(t,now);
+  return `<h3>${esc(tbl(i).n)} — vaqt</h3>
+  <p class="note">${t.limitMs?`Belgilangan: ${durTxt(t.limitMs)} · ${limTxt(rem)}`:"Hozir ochiq vaqt — cheklov yo'q."} O'ynalgani: ${durTxt(playMs(t,now))}</p>
+  <div class="two">${[15,30,60].map(m=>`<button class="btn" data-act="limAdd" data-m="${m}">+${m} daq</button>`).join("")}
+  <button class="btn" data-act="limSet" data-m="60">Jami 1 soat</button><button class="btn" data-act="limSet" data-m="120">Jami 2 soat</button>
+  <button class="btn danger" data-act="limSet" data-m="0">Cheklovni olib tashlash</button></div>
+  <button class="btn ghost wide" data-act="close">Yopish</button>`; };
+A.limAdd = d => { const i=S.f.i, t=S.T[i]; const base=t.limitMs ? t.limitMs : playMs(t,Date.now()); setDoc(tref(i),{...t,limitMs:base+(+d.m)*60000}).catch(failed); logRef(null,"limit",`${tbl(i).n}: +${d.m} daq`); closeSheet(); };
+A.limSet = d => { const i=S.f.i, t=S.T[i], m=+d.m; setDoc(tref(i),{...t,limitMs:m?m*60000:null}).catch(failed); logRef(null,"limit",`${tbl(i).n}: ${m?"jami "+durTxt(m*60000):"cheklov olindi"}`); closeSheet(); };
+
+/* move */
+A.moveAsk = d => openSheet("move",{i:+d.i});
+SHEETS.move = () => { const i=S.f.i; if (!S.T[i]?.start) return null; const free=[0,1,2,3].filter(k=>k!==i && !S.T[k]?.start);
+  return `<h3>${esc(tbl(i).n)} — boshqa stolga</h3>
+  <p class="note">Shu paytgacha o'ynalgan vaqt ${esc(tbl(i).n)} narxida hisoblanadi, buyurtmalar ham o'tadi. Keyingi vaqt yangi stol narxida.</p>
+  ${free.length?free.map(k=>`<button class="btn wide" data-act="move" data-k="${k}">${esc(tbl(k).n)} · ${fmt(tbl(k).r)}/soat</button>`).join(""):`<div class="empty">Bo'sh stol yo'q.</div>`}
+  <button class="btn ghost wide" data-act="close">Bekor</button>`; };
+A.move = d => {
+  const i=S.f.i, k=+d.k, t=S.T[i], now=Date.now(); if (!t.start || S.T[k]?.start) return closeSheet();
+  const ms=curMs(t,now), seg={n:tbl(i).n, r:tbl(i).r, ms, cost:gameCost(ms,tbl(i).r)};
+  const b=writeBatch(db);
+  b.set(tref(k),{start:now,first:t.first||t.start,pausedAt:t.pausedAt?now:null,pausedMs:0,segs:[...(t.segs||[]),seg],orders:t.orders||[],limitMs:t.limitMs||null,by:t.by||S.me.name});
+  b.set(tref(i),{start:null});
+  logRef(b,"move",`${tbl(i).n} → ${tbl(k).n} ko'chirildi (${durTxt(ms)}, ${fmt(seg.cost)})`);
+  b.commit().catch(failed); closeSheet();
+};
+
+/* cancel */
+A.cancelAsk = d => openSheet("cancel",{i:+d.i});
+SHEETS.cancel = () => { const i=S.f.i, t=S.T[i]; if (!t?.start) return null; const now=Date.now(), g=tGame(t,i,now), o=ordSum(t.orders);
+  return `<h3>${esc(tbl(i).n)} — bekor qilish</h3>
+  <p class="note">O'yin pulsiz yopiladi${o?", buyurtmalar omborga qaytadi":""}. Bu tarixga yoziladi va egasi ko'radi.</p>
+  <div class="receipt rows"><div><span class="m">O'ynaldi</span><span>${durTxt(playMs(t,now))}</span></div><div><span class="m">Hisob bo'lardi</span><span>${fmt(g+o)}</span></div></div>
+  <label class="f">Sababi (ixtiyoriy)${inp("why",S.f.why,'placeholder="Masalan: xato ochildi"')}</label>
+  <button class="btn danger wide" data-act="cancel">Ha, bekor qilish</button><button class="btn ghost wide" data-act="close">Yo'q, davom etsin</button>`; };
+A.cancel = () => {
+  const i=S.f.i, t=S.T[i], now=Date.now(); if (!t.start) return closeSheet();
+  const g=tGame(t,i,now), o=ordSum(t.orders), b=writeBatch(db);
+  (t.orders||[]).forEach(x=>{ const m=S.menu[x.id]; if (m&&m.track) b.update(doc(db,C.menu,x.id),{qty:increment(x.q)}); });
+  b.set(tref(i),{start:null});
+  logRef(b,"cancel",`${tbl(i).n} BEKOR qilindi: ${durTxt(playMs(t,now))}, ${fmt(g+o)} bo'lardi${S.f.why?` — ${S.f.why}`:""}`,{amt:g+o});
+  b.commit().catch(failed); closeSheet(); toast("Bekor qilindi");
+};
+
+/* orders */
+A.orders = d => openSheet("orders",{i:+d.i});
+SHEETS.orders = () => { const i=S.f.i, t=S.T[i]; if (!t?.start) return null; const ms=menuList(), o=t.orders||[];
+  return `<h3>${esc(tbl(i).n)} — buyurtma</h3>
+  ${ms.length?`<div class="menu">${ms.map(m=>`<button class="mi" data-act="ordAdd" data-id="${m.id}">${esc(m.n)}<small>${fmt(m.p)}</small>${m.track?`<small class="${(m.qty||0)<=0?"z":""}">${(m.qty||0)<=0?"Tugagan":m.qty+" ta qoldi"}</small>`:""}</button>`).join("")}</div>`:`<div class="empty">Menyu bo'sh. Egasi Sozlama bo'limida qo'shadi.</div>`}
+  <div class="rows">${o.length?o.map((x,k)=>`<div class="ord"><span>${esc(x.n)}</span><button class="sq" data-act="ordChg" data-k="${k}" data-d="-1" aria-label="Kamaytirish">−</button><b>${x.q}</b><button class="sq" data-act="ordChg" data-k="${k}" data-d="1" aria-label="Ko'paytirish">+</button><span style="width:96px;text-align:right">${fmt(x.p*x.q)}</span></div>`).join("")+`<div class="tot"><span>Buyurtma jami</span><span>${fmt(ordSum(o))}</span></div>`:`<p class="note">Menyudan tanlang — har bosish bitta dona qo'shadi.</p>`}</div>
+  <button class="btn go wide" data-act="close">Tayyor</button>`; };
+A.ordAdd = d => {
+  const i=S.f.i, t=S.T[i], m=S.menu[d.id]; if (!t.start||!m) return;
+  if (m.track && (m.qty||0)<=0) toast(`${m.n} omborda tugagan deb ko'rsatilgan`);
+  const o=(t.orders||[]).map(x=>({...x})), f=o.find(x=>x.id===m.id && x.p===m.p);
+  f ? f.q++ : o.push({id:m.id,n:m.n,p:m.p,q:1});
+  const b=writeBatch(db); b.set(tref(i),{...t,orders:o}); if (m.track) b.update(doc(db,C.menu,m.id),{qty:increment(-1)}); b.commit().catch(failed);
+};
+A.ordChg = d => {
+  const i=S.f.i, t=S.T[i], o=(t.orders||[]).map(x=>({...x})), x=o[+d.k]; if (!x) return;
+  const dd=+d.d; x.q+=dd; if (x.q<=0) o.splice(+d.k,1);
+  const m=S.menu[x.id], b=writeBatch(db); b.set(tref(i),{...t,orders:o}); if (m&&m.track) b.update(doc(db,C.menu,x.id),{qty:increment(-dd)}); b.commit().catch(failed);
+};
+
+/* stop & pay */
+A.stopAsk = d => { const i=+d.i, t=S.T[i]; if (!t.start) return; openSheet("pay",{i, end:Date.now(), disc:0, discMode:"0", pay:"naqd", debtId:"", newName:"", cashNow:""}); };
+function payCalc(){
+  const f=S.f, i=f.i, t=S.T[i], ms=curMs(t,f.end), rate=tbl(i).r;
+  const game=segCost(t)+gameCost(ms,rate), ord=ordSum(t.orders), sub=game+ord;
+  const disc=Math.min(sub, f.discMode==="c" ? money(f.discC) : +f.discMode||0);
+  const total=sub-disc;
+  let naqd=0,karta=0,nasiya=0;
+  if (f.pay==="naqd") naqd=total; else if (f.pay==="karta") karta=total; else { naqd=Math.min(total,money(f.cashNow)); nasiya=total-naqd; }
+  return {t,i,ms,rate,game,ord,sub,disc,total,naqd,karta,nasiya,play:segMs(t)+ms};
+}
+SHEETS.pay = () => {
+  const f=S.f, t=S.T[f.i]; if (!t?.start) return null; const c=payCalc(), dl=debtList();
+  return `<h3>${esc(tbl(f.i).n)} — hisob</h3>
+  <div class="receipt rows">
+    <div><span class="m">Vaqt</span><span>${hm(t.first||t.start)} – ${hm(f.end)}</span></div>
+    <div><span class="m">O'ynaldi${t.pausedMs||t.pausedAt?" (pauzasiz)":""}</span><span>${durTxt(c.play)}</span></div>
+    ${(t.segs||[]).map(s=>`<div><span class="m">${esc(s.n)} · ${durTxt(s.ms)}</span><span>${fmt(s.cost)}</span></div>`).join("")}
+    <div><span class="m">${t.segs&&t.segs.length?esc(tbl(f.i).n)+" · "+durTxt(c.ms):"O'yin"} (${fmt(c.rate)}/soat)</span><span>${fmt(c.game-segCost(t))}</span></div>
+    ${(t.orders||[]).map(x=>`<div><span class="m">${esc(x.n)} × ${x.q}</span><span>${fmt(x.p*x.q)}</span></div>`).join("")}
+    ${c.disc?`<div><span class="m">Chegirma</span><span>−${fmt(c.disc)}</span></div>`:""}
+    <div class="tot"><span>To'lash kerak</span><span class="big" id="payTot">${fmt(c.total)}</span></div>
+  </div>
+  <div><p class="note" style="margin-bottom:6px">Chegirma</p><div class="chips">${chip("f","0",f.discMode,"Yo'q",'data-k="discMode"')}${chip("f","5000",f.discMode,"5 000",'data-k="discMode"')}${chip("f","10000",f.discMode,"10 000",'data-k="discMode"')}${chip("f","c",f.discMode,"Boshqa",'data-k="discMode"')}</div>
+  ${f.discMode==="c"?`<div style="margin-top:8px">${inp("discC",f.discC,'inputmode="numeric" placeholder="Chegirma summasi" data-live="1"')}</div>`:""}</div>
+  <div><p class="note" style="margin-bottom:6px">To'lov turi</p><div class="chips">${chip("f","naqd",f.pay,"Naqd",'data-k="pay"')}${chip("f","karta",f.pay,"Karta",'data-k="pay"')}${chip("f","nasiya",f.pay,"Nasiya (qarz)",'data-k="pay"')}</div></div>
+  ${f.pay==="nasiya"?`<label class="f">Kim qarzga oldi?<select class="inp" data-bind="debtId" data-redraw><option value="">— Tanlang —</option>${dl.map(x=>`<option value="${x.id}" ${f.debtId===x.id?"selected":""}>${esc(x.name)}${x.amount?` (qarzi ${grp(x.amount)})`:""}</option>`).join("")}<option value="new" ${f.debtId==="new"?"selected":""}>+ Yangi odam</option></select></label>
+    ${f.debtId==="new"?`<label class="f">Ismi${inp("newName",f.newName,'placeholder="Masalan: Akmal (Mirzaqal\'a)"')}</label>`:""}
+    <label class="f">Hozir naqd berdi (ixtiyoriy)${inp("cashNow",f.cashNow,'inputmode="numeric" placeholder="0" data-live="1"')}</label>
+    <p class="note" id="debtLine">Qarzga yoziladi: <b>${fmt(c.nasiya)}</b></p>`:""}
+  <p class="err" id="payErr"></p>
+  <button class="btn go wide" data-act="pay" style="min-height:54px">To'landi — stolni bo'shatish</button>
+  <button class="btn ghost wide" data-act="close">Orqaga, o'yin davom etadi</button>`;
+};
+LIVE.pay = () => { const c=payCalc(); const t=$("payTot"); if (t) t.textContent=fmt(c.total); const dl=$("debtLine"); if (dl) dl.innerHTML=`Qarzga yoziladi: <b>${fmt(c.nasiya)}</b>`; };
+A.pay = () => {
+  const f=S.f, c=payCalc(), t=c.t, i=c.i; if (!t.start) return closeSheet();
+  let debtId=null, debtName="";
+  if (c.nasiya>0){
+    if (!f.debtId) return $("payErr").textContent="Kim qarzga olganini tanlang.";
+    if (f.debtId==="new"){
+      debtName=(f.newName||"").trim(); if (!debtName) return $("payErr").textContent="Ismini yozing.";
+      const ex=Object.values(S.debts).find(x=>String(x.name).toLowerCase()===debtName.toLowerCase()); if (ex){ debtId=ex.id; debtName=ex.name; }
+    } else { debtId=f.debtId; debtName=S.debts[debtId]?.name||""; }
+  }
+  const now=Date.now(), end=f.end, b=writeBatch(db);
+  if (c.nasiya>0){
+    if (!debtId){ const r=doc(collection(db,C.debts)); debtId=r.id; b.set(r,{name:debtName,phone:"",amount:c.nasiya,at:now,upd:now}); }
+    else b.update(doc(db,C.debts,debtId),{amount:increment(c.nasiya),upd:now});
+    b.set(doc(collection(db,C.dlog)),{debtId,name:debtName,amt:c.nasiya,kind:"game",pay:"",note:tbl(i).n,by:S.me.name,at:now,day:dayKey(now),month:monKey(now)});
+  }
+  const g={t:i,name:tbl(i).n,rate:c.rate,first:t.first||t.start,start:t.start,end,ms:c.play,segs:t.segs||[],game:c.game,ord:c.ord,items:t.orders||[],disc:c.disc,total:c.total,
+    naqd:c.naqd,karta:c.karta,nasiya:c.nasiya,debtId:debtId||null,debtName:debtName||null,by:S.me.name,day:dayKey(end),month:monKey(end),at:end};
+  b.set(doc(collection(db,C.games)),g);
+  b.set(tref(i),{start:null});
+  logRef(b,"close",`${tbl(i).n} yopildi: ${fmt(c.total)} (${[c.naqd?"naqd "+grp(c.naqd):"",c.karta?"karta "+grp(c.karta):"",c.nasiya?"nasiya "+grp(c.nasiya)+" — "+debtName:""].filter(Boolean).join(", ")})`,{amt:c.total});
+  if (c.disc) logRef(b,"disc",`${tbl(i).n}: chegirma ${fmt(c.disc)}`,{amt:c.disc});
+  b.commit().catch(failed); closeSheet(); toast(`${fmt(c.total)} — saqlandi`);
+};
+
+/* game view (receipt) */
+A.gameView = d => openSheet("game",{id:d.id});
+const findGame = id => S.today.find(g=>g.id===id) || S.kGames.find(g=>g.id===id) || (S.repGames||[]).find(g=>g.id===id);
+SHEETS.game = () => { const g=findGame(S.f.id); if (!g) return null;
+  return `<h3>${esc(g.name)} — chek</h3>
+  <div class="receipt rows">
+    <div><span class="m">Sana</span><span>${dayTxt(g.day)}, ${hm(g.first||g.start)} – ${hm(g.end)}</span></div>
+    <div><span class="m">O'ynaldi</span><span>${durTxt(g.ms)}</span></div>
+    ${(g.segs||[]).map(s=>`<div><span class="m">${esc(s.n)} · ${durTxt(s.ms)}</span><span>${fmt(s.cost)}</span></div>`).join("")}
+    <div><span class="m">O'yin jami</span><span>${fmt(g.game)}</span></div>
+    ${(g.items||[]).map(x=>`<div><span class="m">${esc(x.n)} × ${x.q}</span><span>${fmt(x.p*x.q)}</span></div>`).join("")}
+    ${g.disc?`<div><span class="m">Chegirma</span><span>−${fmt(g.disc)}</span></div>`:""}
+    <div class="tot"><span>Jami</span><span>${fmt(g.total)}</span></div>
+    ${g.naqd?`<div><span class="m">Naqd</span><span>${fmt(g.naqd)}</span></div>`:""}${g.karta?`<div><span class="m">Karta</span><span>${fmt(g.karta)}</span></div>`:""}${g.nasiya?`<div><span class="m">Nasiya — ${esc(g.debtName)}</span><span>${fmt(g.nasiya)}</span></div>`:""}
+    <div><span class="m">Yopgan</span><span>${esc(g.by)}</span></div>
+  </div>
+  ${isOwner()?`<button class="btn danger wide" data-act="gameDelAsk">O'yinni o'chirish</button>`:""}
+  ${S.f.ask?`<p class="warnTxt">Rostdan o'chirilsinmi? Tushumdan ${fmt(g.total)} ayriladi${g.nasiya?`, ${esc(g.debtName)} qarzidan ${fmt(g.nasiya)} kamayadi`:""}.</p><button class="btn danger wide" data-act="gameDel">Ha, o'chirish</button>`:""}
+  <button class="btn ghost wide" data-act="close">Yopish</button>`; };
+A.gameDelAsk = () => { S.f.ask=true; drawSheet(); };
+A.gameDel = () => {
+  const g=findGame(S.f.id); if (!g||!isOwner()) return; const now=Date.now(), b=writeBatch(db);
+  b.delete(doc(db,C.games,g.id));
+  if (g.nasiya && g.debtId && S.debts[g.debtId]){ b.update(doc(db,C.debts,g.debtId),{amount:increment(-g.nasiya),upd:now}); b.set(doc(collection(db,C.dlog)),{debtId:g.debtId,name:g.debtName,amt:-g.nasiya,kind:"undo",pay:"",note:"O'yin o'chirildi",by:S.me.name,at:now,day:dayKey(now),month:monKey(now)}); }
+  logRef(b,"del",`O'yin o'chirildi: ${g.name} ${hm(g.start)}–${hm(g.end)}, ${fmt(g.total)}`,{amt:g.total});
+  b.commit().catch(failed); closeSheet(); toast("O'chirildi"); S.repKey=null; render();
+};
+
+/* ---------- debts ---------- */
+function vDebts(){
+  const dl=debtList(), tot=dl.reduce((a,x)=>a+(x.amount||0),0), owing=dl.filter(x=>(x.amount||0)>0);
+  return `<div class="kpi"><div class="hero full"><small>Jami qarzlar · ${owing.length} kishi</small><b>${fmt(tot)}</b></div></div>
+  <button class="btn go wide" data-act="debtNew">+ Yangi qarzdor</button>
+  <div class="list">${dl.length?dl.map(x=>`<button class="li" data-act="debtView" data-id="${x.id}"><div>${esc(x.name)}<div class="m">${x.phone?esc(x.phone)+" · ":""}oxirgi: ${dateTxt(x.upd||x.at)}</div></div><b style="color:${(x.amount||0)>0?"var(--danger)":"var(--ok)"}">${(x.amount||0)>0?fmt(x.amount):"Qarzi yo'q"}</b></button>`).join(""):`<div class="empty"><b>Qarzdorlar yo'q</b>O'yinni yopishda "Nasiya" tanlansa, shu yerga tushadi.</div>`}</div>`;
+}
+A.debtNew = () => openSheet("debtNew",{name:"",phone:"",amt:"",note:""});
+SHEETS.debtNew = () => `<h3>Yangi qarzdor</h3>
+  <label class="f">Ismi${inp("name",S.f.name,'placeholder="Masalan: Akmal"')}</label>
+  <label class="f">Telefoni (ixtiyoriy)${inp("phone",S.f.phone,'inputmode="tel" placeholder="+998"')}</label>
+  <label class="f">Eski qarzi bo'lsa (ixtiyoriy)${inp("amt",S.f.amt,'inputmode="numeric" placeholder="0"')}</label>
+  <p class="err" id="dErr"></p>
+  <button class="btn go wide" data-act="debtCreate">Saqlash</button><button class="btn ghost wide" data-act="close">Bekor</button>`;
+A.debtCreate = () => {
+  const name=(S.f.name||"").trim(), amt=money(S.f.amt); if (!name) return $("dErr").textContent="Ismini yozing.";
+  if (Object.values(S.debts).some(x=>String(x.name).toLowerCase()===name.toLowerCase())) return $("dErr").textContent="Bu ism ro'yxatda bor.";
+  const now=Date.now(), b=writeBatch(db), r=doc(collection(db,C.debts));
+  b.set(r,{name,phone:(S.f.phone||"").trim(),amount:amt,at:now,upd:now});
+  if (amt) b.set(doc(collection(db,C.dlog)),{debtId:r.id,name,amt,kind:"manual",pay:"",note:"Eski qarz",by:S.me.name,at:now,day:dayKey(now),month:monKey(now)});
+  logRef(b,"debt",`Yangi qarzdor: ${name}${amt?`, ${fmt(amt)}`:""}`);
+  b.commit().catch(failed); closeSheet();
+};
+A.debtView = d => { openSheet("debt",{id:d.id, hist:null, mode:"", amt:"", pay:"naqd", note:""}); loadDebtHist(d.id); };
+async function loadDebtHist(id){
+  try{ const s=await getDocs(query(collection(db,C.dlog),where("debtId","==",id))); if (S.sheet==="debt"&&S.f.id===id){ S.f.hist=s.docs.map(x=>x.data()).sort((a,b)=>b.at-a.at); drawSheet(); } }
+  catch(e){ if (S.sheet==="debt"){ S.f.hist=[]; drawSheet(); } }
+}
+SHEETS.debt = () => { const x=S.debts[S.f.id]; if (!x) return null; const f=S.f;
+  return `<h3>${esc(x.name)}</h3>${x.phone?`<p class="note"><a href="tel:${esc(x.phone)}">${esc(x.phone)}</a></p>`:""}
+  <div class="kpi"><div class="hero full"><small>Hozirgi qarzi</small><b>${fmt(x.amount||0)}</b></div></div>
+  ${f.mode?`<div class="card" style="padding:12px;gap:8px">
+    <b>${f.mode==="repay"?"Qarz to'ladi":"Qarz qo'shish"}</b>
+    ${inp("amt",f.amt,'inputmode="numeric" placeholder="Summa"')}
+    ${f.mode==="repay"?`<div class="chips">${chip("f","naqd",f.pay,"Naqd",'data-k="pay"')}${chip("f","karta",f.pay,"Karta",'data-k="pay"')}</div>${(x.amount||0)>0?`<button class="btn ghost" data-act="debtAll">Hammasini to'ladi (${grp(x.amount)})</button>`:""}`:inp("note",f.note,'placeholder="Izoh (ixtiyoriy)"')}
+    <p class="err" id="dErr"></p>
+    <div class="btns"><button class="btn go" data-act="debtSave">Saqlash</button><button class="btn ghost" data-act="f" data-k="mode" data-v="">Bekor</button></div></div>`
+  :`<div class="btns"><button class="btn go" data-act="f" data-k="mode" data-v="repay">Qarz to'ladi</button><button class="btn" data-act="f" data-k="mode" data-v="add">Qarz qo'shish</button></div>`}
+  <p class="note" style="font-weight:700">Tarixi</p>
+  <div class="list">${f.hist===null?`<div class="empty">Yuklanmoqda…</div>`:f.hist.length?f.hist.map(h=>`<div class="li"><div>${h.amt>0?"Qarz":"To'ladi"}${h.note?` · ${esc(h.note)}`:""}${h.pay?` <span class="tag t-${h.pay}">${PAYS[h.pay]}</span>`:""}<div class="m">${dateTxt(h.at)} · ${esc(h.by)}</div></div><b style="color:${h.amt>0?"var(--danger)":"var(--ok)"}">${h.amt>0?"+":"−"}${grp(Math.abs(h.amt))}</b></div>`).join(""):`<div class="empty">Yozuv yo'q</div>`}</div>
+  ${isOwner()&&!(x.amount>0)?`<button class="btn danger wide" data-act="debtDel">Ro'yxatdan o'chirish</button>`:""}
+  <button class="btn ghost wide" data-act="close">Yopish</button>`; };
+A.debtAll = () => { const x=S.debts[S.f.id]; if (x) { S.f.amt=String(x.amount||0); drawSheet(); } };
+A.debtSave = () => {
+  const x=S.debts[S.f.id], amt=money(S.f.amt); if (!x) return; if (!amt) return $("dErr").textContent="Summani yozing.";
+  const repay=S.f.mode==="repay", now=Date.now(), b=writeBatch(db), v=repay?-amt:amt;
+  b.update(doc(db,C.debts,x.id),{amount:increment(v),upd:now});
+  b.set(doc(collection(db,C.dlog)),{debtId:x.id,name:x.name,amt:v,kind:repay?"repay":"manual",pay:repay?S.f.pay:"",note:repay?"":(S.f.note||"").trim(),by:S.me.name,at:now,day:dayKey(now),month:monKey(now)});
+  logRef(b,repay?"repay":"debt",`${x.name}: ${repay?"qarz to'ladi":"qarz qo'shildi"} ${fmt(amt)}${repay?` (${PAYS[S.f.pay]})`:""}`,{amt});
+  b.commit().catch(failed); toast("Saqlandi"); S.f.mode=""; S.f.amt=""; S.f.note=""; S.f.hist=null; drawSheet(); setTimeout(()=>loadDebtHist(x.id),400);
+};
+A.debtDel = () => { const x=S.debts[S.f.id]; if (!x||!isOwner()) return; deleteDoc(doc(db,C.debts,x.id)).catch(failed); logRef(null,"debt",`Qarzdor o'chirildi: ${x.name}`); closeSheet(); };
+
+/* ---------- kassa ---------- */
+function kassaCalc(){
+  const gs=S.kGames, dl=S.kDlog;
+  const rep=dl.filter(h=>h.kind==="repay");
+  const gN=gs.reduce((a,g)=>a+(g.naqd||0),0), gK=gs.reduce((a,g)=>a+(g.karta||0),0), gD=gs.reduce((a,g)=>a+(g.nasiya||0),0);
+  const rN=rep.filter(h=>h.pay==="naqd").reduce((a,h)=>a-h.amt,0), rK=rep.filter(h=>h.pay==="karta").reduce((a,h)=>a-h.amt,0);
+  return { n:gs.length, total:gs.reduce((a,g)=>a+(g.total||0),0), disc:gs.reduce((a,g)=>a+(g.disc||0),0), gN,gK,gD,rN,rK, cash:gN+rN, card:gK+rK };
+}
+function vKassa(){
+  const k=kassaCalc();
+  return `<p class="note">${S.kassaAt?`Oxirgi kassa yopilgandan beri: ${dateTxt(S.kassaAt)}`:"Hali kassa yopilmagan"}</p>
+  <div class="kpi">
+    <div class="hero full"><small>Kassada bo'lishi kerak (naqd)</small><b>${fmt(k.cash)}</b></div>
+    <div><small>Kartaga</small><b>${grp(k.card)}</b></div>
+    <div><small>Nasiyaga ketdi</small><b>${grp(k.gD)}</b></div>
+    <div><small>O'yinlar</small><b>${k.n} ta</b></div>
+    <div><small>Chegirmalar</small><b>${grp(k.disc)}</b></div>
+  </div>
+  ${(k.rN||k.rK)?`<p class="note">Naqd ichida qaytgan qarzlar: ${fmt(k.rN)}${k.rK?` · kartaga qaytgan qarz: ${fmt(k.rK)}`:""}</p>`:""}
+  <button class="btn go wide" data-act="kassaAsk" style="min-height:54px">Kassani yopish</button>
+  <h3 style="margin-top:8px">Oldingi yopilishlar</h3>
+  <div class="list">${S.shifts.length?S.shifts.map(s=>`<div class="li"><div>${dateTxt(s.at)} · ${esc(s.by)}<div class="m">Kerak ${grp(s.cash)} · sanaldi ${grp(s.counted)} · karta ${grp(s.card)}</div></div><b style="color:${s.diff<0?"var(--danger)":s.diff>0?"var(--warn)":"var(--ok)"}">${s.diff===0?"To'g'ri":(s.diff>0?"+":"−")+grp(Math.abs(s.diff))}</b></div>`).join(""):`<div class="empty">Hali yo'q</div>`}</div>`;
+}
+A.kassaAsk = () => openSheet("kassa",{counted:""});
+SHEETS.kassa = () => { const k=kassaCalc(), cnt=money(S.f.counted), has=String(S.f.counted||"").trim()!=="";
+  return `<h3>Kassani yopish</h3>
+  <div class="receipt rows"><div><span class="m">O'yinlar</span><span>${k.n} ta · ${fmt(k.total)}</span></div><div><span class="m">Naqd (o'yin)</span><span>${fmt(k.gN)}</span></div>${k.rN?`<div><span class="m">Naqd (qaytgan qarz)</span><span>${fmt(k.rN)}</span></div>`:""}<div><span class="m">Karta</span><span>${fmt(k.card)}</span></div><div><span class="m">Nasiya</span><span>${fmt(k.gD)}</span></div>
+  <div class="tot"><span>Kassada bo'lishi kerak</span><span>${fmt(k.cash)}</span></div></div>
+  <label class="f">Kassadagi pulni sanab yozing${inp("counted",S.f.counted,'inputmode="numeric" placeholder="Masalan: 450000" data-live="1"')}</label>
+  <p class="note" id="kDiff">${diffTxt(has,cnt-k.cash)}</p>
+  <button class="btn go wide" data-act="kassaClose">Yopish va saqlash</button>
+  <button class="btn ghost wide" data-act="kassaText">Telegram uchun matn</button>
+  <button class="btn ghost wide" data-act="close">Bekor</button>`; };
+const diffTxt = (has,d) => !has ? "Sanab yozsangiz, farq ko'rsatiladi." : d===0 ? `<b style="color:var(--ok)">To'g'ri chiqdi ✓</b>` : d<0 ? `<b style="color:var(--danger)">Kam: ${fmt(-d)}</b>` : `<b style="color:var(--warn)">Ortiqcha: ${fmt(d)}</b>`;
+LIVE.kassa = () => { const k=kassaCalc(), el=$("kDiff"); if (el) el.innerHTML=diffTxt(String(S.f.counted||"").trim()!=="", money(S.f.counted)-k.cash); };
+A.kassaClose = () => {
+  const k=kassaCalc(), cnt=String(S.f.counted||"").trim()===""?k.cash:money(S.f.counted), now=Date.now(), b=writeBatch(db);
+  b.set(doc(collection(db,C.shifts)),{from:S.kassaAt,at:now,by:S.me.name,games:k.n,total:k.total,cash:k.cash,card:k.card,debt:k.gD,disc:k.disc,counted:cnt,diff:cnt-k.cash});
+  b.set(doc(db,C.meta,"kassa"),{at:now});
+  logRef(b,"kassa",`Kassa yopildi: kerak ${fmt(k.cash)}, sanaldi ${fmt(cnt)}${cnt!==k.cash?` (farq ${cnt>k.cash?"+":"−"}${grp(Math.abs(cnt-k.cash))})`:""}`,{amt:cnt});
+  b.commit().catch(failed); closeSheet(); toast("Kassa yopildi");
+};
+A.kassaText = () => { const k=kassaCalc(); shareText(`DIAMOND — kassa (${dateTxt(Date.now())})\nO'yinlar: ${k.n} ta\nJami: ${fmt(k.total)}\nNaqd: ${fmt(k.cash)}\nKarta: ${fmt(k.card)}\nNasiya: ${fmt(k.gD)}${k.disc?`\nChegirma: ${fmt(k.disc)}`:""}${String(S.f.counted||"").trim()?`\nSanaldi: ${fmt(money(S.f.counted))}`:""}`); };
+async function shareText(txt){
+  try{ if (navigator.share){ await navigator.share({text:txt}); return; } }catch(e){ if (e.name==="AbortError") return; }
+  try{ await navigator.clipboard.writeText(txt); toast("Nusxa olindi — Telegramga qo'ying"); }
+  catch(e){ openSheet("text",{txt}); }
+}
+SHEETS.text = () => `<h3>Matn</h3><pre class="copy">${esc(S.f.txt)}</pre><p class="note">Bosib turib nusxa oling.</p><button class="btn ghost wide" data-act="close">Yopish</button>`;
+
+/* ---------- bar / stock ---------- */
+function vBar(){
+  const ms=menuList();
+  return `${isOwner()?`<button class="btn go wide" data-act="itemNew">+ Mahsulot qo'shish</button>`:""}
+  <div class="list">${ms.length?ms.map(m=>{ const st=stockSt(m);
+    return `<button class="li" data-act="itemView" data-id="${m.id}"><div>${esc(m.n)}<div class="m">${fmt(m.p)}${m.track?` · kam deb hisoblanadi: ${m.min||0} ta`:" · qoldiq kuzatilmaydi"}</div></div>${m.track?`<span class="stk s-${st}">${m.qty||0} ta</span>`:""}</button>`; }).join(""):`<div class="empty"><b>Menyu bo'sh</b>${isOwner()?"Mahsulot qo'shing.":"Egasi qo'shadi."}</div>`}</div>
+  <p class="note">Qoldiq kuzatilsa, buyurtma qo'shilganda avtomatik kamayadi. Kam qolganda "Bar" yonida qizil raqam chiqadi.</p>`;
+}
+A.itemNew = () => openSheet("item",{id:null,n:"",p:"",track:true,qty:"",min:"5"});
+A.itemView = d => { const m=S.menu[d.id]; if (!m) return; if (isOwner()) openSheet("item",{id:m.id,n:m.n,p:String(m.p),track:!!m.track,qty:String(m.qty||0),min:String(m.min||0),inc:""}); else openSheet("itemIn",{id:m.id,inc:""}); };
+SHEETS.item = () => { const f=S.f, m=f.id?S.menu[f.id]:null; if (f.id&&!m) return null;
+  return `<h3>${f.id?esc(m.n):"Yangi mahsulot"}</h3>
+  ${f.id&&m.track?`<div class="card" style="padding:12px;gap:8px"><b>Keldi (omborga qo'shish)</b><div class="btns">${inp("inc",f.inc,'inputmode="numeric" placeholder="Nechta keldi"')}<button class="btn go" data-act="itemInc" style="flex:none">Qo'shish</button></div></div>`:""}
+  <label class="f">Nomi${inp("n",f.n,'placeholder="Masalan: Fanta 1L"')}</label>
+  <label class="f">Narxi (so'm)${inp("p",f.p,'inputmode="numeric" placeholder="12000"')}</label>
+  <label class="f" style="display:flex;align-items:center;gap:10px"><input type="checkbox" data-bind="track" data-redraw ${f.track?"checked":""} style="width:22px;height:22px"> Qoldig'ini kuzatish</label>
+  ${f.track?`<div class="two"><label class="f">Hozir bor (ta)${inp("qty",f.qty,'inputmode="numeric"')}</label><label class="f">Kam deb hisobla (ta)${inp("min",f.min,'inputmode="numeric"')}</label></div>`:""}
+  <p class="err" id="iErr"></p>
+  <button class="btn go wide" data-act="itemSave">Saqlash</button>
+  ${f.id?`<button class="btn danger wide" data-act="itemDel">Menyudan o'chirish</button>`:""}
+  <button class="btn ghost wide" data-act="close">Bekor</button>`; };
+SHEETS.itemIn = () => { const m=S.menu[S.f.id]; if (!m) return null; return `<h3>${esc(m.n)}</h3><p class="note">${fmt(m.p)}${m.track?` · omborda ${m.qty||0} ta`:""}</p>
+  ${m.track?`<label class="f">Keldi (nechta)${inp("inc",S.f.inc,'inputmode="numeric"')}</label><button class="btn go wide" data-act="itemInc">Omborga qo'shish</button>`:""}<button class="btn ghost wide" data-act="close">Yopish</button>`; };
+A.itemInc = () => { const m=S.menu[S.f.id], q=money(S.f.inc); if (!m||!q) return; updateDoc(doc(db,C.menu,m.id),{qty:increment(q)}).catch(failed); logRef(null,"stock",`${m.n}: +${q} ta keldi`); toast(`+${q} ta qo'shildi`); S.f.inc=""; if (S.sheet==="item") S.f.qty=String((m.qty||0)+q); drawSheet(); };
+A.itemSave = () => {
+  const f=S.f, n=(f.n||"").trim(), p=money(f.p); if (!n) return $("iErr").textContent="Nomini yozing."; if (!p) return $("iErr").textContent="Narxini yozing.";
+  const v={n,p,track:!!f.track,qty:f.track?money(f.qty):0,min:f.track?money(f.min):0};
+  if (f.id){ const m=S.menu[f.id]; updateDoc(doc(db,C.menu,f.id),v).catch(failed); if (m && (m.p!==p||m.n!==n)) logRef(null,"cfg",`Menyu: ${m.n} ${grp(m.p)} → ${n} ${grp(p)}`); if (m && m.track && v.track && (m.qty||0)!==v.qty) logRef(null,"stock",`${n}: qoldiq qo'lda o'zgartirildi ${m.qty||0} → ${v.qty}`); }
+  else { setDoc(doc(collection(db,C.menu)),{...v,ord:Date.now()}).catch(failed); logRef(null,"cfg",`Menyuga qo'shildi: ${n} ${grp(p)}`); }
+  closeSheet();
+};
+A.itemDel = () => { const m=S.menu[S.f.id]; if (!m) return; deleteDoc(doc(db,C.menu,m.id)).catch(failed); logRef(null,"cfg",`Menyudan o'chirildi: ${m.n}`); closeSheet(); };
+
+/* ---------- report ---------- */
+S.rep={mode:"day", day:dayKey(Date.now()), mon:monKey(Date.now())}; S.repGames=[]; S.repDlog=[]; S.repState="idle";
+function vReport(){
+  const r=S.rep, today=dayKey(Date.now());
+  return `<div class="seg"><button class="chip" data-act="repMode" data-v="day" aria-pressed="${r.mode==="day"}">Kunlik</button><button class="chip" data-act="repMode" data-v="month" aria-pressed="${r.mode==="month"}">Oylik</button></div>
+  ${r.mode==="day"?`<input class="inp" type="date" id="repDay" value="${r.day}" max="${today}">`:`<input class="inp" type="month" id="repMon" value="${r.mon}" max="${today.slice(0,7)}">`}
+  <div id="repOut">${repHtml()}</div>`;
+}
+A.repMode = d => { S.rep.mode=d.v; S.repKey=null; render(); };
+document.addEventListener("change", e=>{ if (e.target.id==="repDay"){ S.rep.day=e.target.value; loadReport(); } if (e.target.id==="repMon"){ S.rep.mon=e.target.value; loadReport(); } });
+async function loadReport(){
+  const r=S.rep, k = r.mode==="day" ? "d:"+r.day : "m:"+r.mon;
+  if (S.repKey===k && S.repState!=="err") return;
+  S.repKey=k; S.repState="load"; const out=$("repOut"); if (out) out.innerHTML=repHtml();
+  try{
+    const f = r.mode==="day" ? ["day",r.day] : ["month",r.mon];
+    const [g,d] = await Promise.all([getDocs(query(collection(db,C.games),where(f[0],"==",f[1]))), getDocs(query(collection(db,C.dlog),where(f[0],"==",f[1])))]);
+    if (S.repKey!==k) return;
+    S.repGames=g.docs.map(x=>({id:x.id,...x.data()})); S.repDlog=d.docs.map(x=>x.data()); S.repState="ok";
+  }catch(e){ S.repState="err"; }
+  const o=$("repOut"); if (o && S.tab==="report") o.innerHTML=repHtml();
+}
+function repCalc(){
+  const gs=S.repGames, sum=f=>gs.reduce((a,g)=>a+(g[f]||0),0);
+  const byT=S.cfg.tables.map(t=>({n:t.n,c:0,s:0,ms:0}));
+  gs.forEach(g=>{ let s=g.game||0, ms=g.ms||0;
+    (g.segs||[]).forEach(sg=>{ const k=S.cfg.tables.findIndex(t=>t.n===sg.n); if (k>=0){ byT[k].s+=sg.cost; byT[k].ms+=sg.ms; s-=sg.cost; ms-=sg.ms; } });
+    if (byT[g.t]){ byT[g.t].c++; byT[g.t].s+=s; byT[g.t].ms+=ms; } });
+  const items={}; gs.forEach(g=>(g.items||[]).forEach(x=>{ const k=x.n; items[k]=items[k]||{n:x.n,q:0,s:0}; items[k].q+=x.q; items[k].s+=x.q*x.p; }));
+  const top=Object.values(items).sort((a,b)=>b.s-a.s);
+  const repaid=S.repDlog.filter(h=>h.kind==="repay").reduce((a,h)=>a-h.amt,0);
+  return { n:gs.length, total:sum("total"), game:sum("game"), ord:sum("ord"), disc:sum("disc"), naqd:sum("naqd"), karta:sum("karta"), nasiya:sum("nasiya"), ms:sum("ms"), byT, top, repaid };
+}
+function repHtml(){
+  if (S.repState==="load") return `<div class="empty">Yuklanmoqda…</div>`;
+  if (S.repState==="err") return `<p class="warnTxt">Hisobotni yuklab bo'lmadi. Internetni tekshiring.</p>`;
+  if (S.repState!=="ok") return "";
+  const c=repCalc(), r=S.rep, title = r.mode==="day" ? dayTxt(r.day) : MONTHS[+r.mon.slice(5)-1]+" "+r.mon.slice(0,4);
+  const maxT=Math.max(1,...c.byT.map(x=>x.s));
+  let list="";
+  if (r.mode==="day"){ list=S.repGames.slice().sort((a,b)=>b.end-a.end).map(liGame).join(""); }
+  else { const by={}; S.repGames.forEach(g=>{ by[g.day]=by[g.day]||{n:0,s:0}; by[g.day].n++; by[g.day].s+=g.total||0; }); list=Object.keys(by).sort().reverse().map(d=>`<div class="li"><div>${dayTxt(d)}<div class="m">${by[d].n} ta o'yin</div></div><b>${fmt(by[d].s)}</b></div>`).join(""); }
+  return `<div class="kpi">
+    <div class="hero full"><small>${title} · jami tushum</small><b>${fmt(c.total)}</b></div>
+    <div><small>Naqd</small><b>${grp(c.naqd)}</b></div><div><small>Karta</small><b>${grp(c.karta)}</b></div>
+    <div><small>Nasiyaga</small><b>${grp(c.nasiya)}</b></div><div><small>Qaytgan qarz</small><b>${grp(c.repaid)}</b></div>
+    <div><small>O'yinlar</small><b>${c.n} ta</b></div><div><small>O'ynalgan vaqt</small><b style="font-size:20px">${hoursTxt(c.ms)}</b></div>
+    <div><small>O'yindan</small><b>${grp(c.game)}</b></div><div><small>Bardan</small><b>${grp(c.ord)}</b></div>
+    ${c.disc?`<div class="full"><small>Berilgan chegirmalar</small><b>${grp(c.disc)}</b></div>`:""}
+  </div>
+  <h3>Stollar</h3>
+  <div class="list">${c.byT.map(x=>`<div class="li" style="display:block"><div style="display:flex;justify-content:space-between;gap:8px"><span>${esc(x.n)} <span class="m">· ${x.c} ta · ${hoursTxt(x.ms)}</span></span><b>${fmt(x.s)}</b></div><div class="bar"><i style="width:${Math.round(x.s/maxT*100)}%"></i></div></div>`).join("")}</div>
+  ${c.top.length?`<h3>Bar sotuvi</h3><div class="list">${c.top.map(x=>`<div class="li"><div>${esc(x.n)}<div class="m">${x.q} ta</div></div><b>${fmt(x.s)}</b></div>`).join("")}</div>`:""}
+  <button class="btn ghost wide" data-act="repText">Telegram uchun matn</button>
+  <h3>${r.mode==="day"?"O'yinlar":"Kunlar"}</h3>
+  <div class="list">${list||`<div class="empty">Bu davrda o'yin bo'lmagan.</div>`}</div>`;
+}
+A.repText = () => { const c=repCalc(), r=S.rep, title = r.mode==="day" ? dayTxt(r.day) : MONTHS[+r.mon.slice(5)-1]+" "+r.mon.slice(0,4);
+  shareText([`DIAMOND — ${title}`,`O'yinlar: ${c.n} ta, ${hoursTxt(c.ms)}`,`Jami tushum: ${fmt(c.total)}`,`  Naqd: ${fmt(c.naqd)}`,`  Karta: ${fmt(c.karta)}`,`  Nasiya: ${fmt(c.nasiya)}`,
+    `Stollar:`,...c.byT.filter(x=>x.c).map(x=>`  ${x.n}: ${fmt(x.s)} (${x.c} ta)`),`Bar: ${fmt(c.ord)}`, c.disc?`Chegirma: ${fmt(c.disc)}`:"", c.repaid?`Qaytgan qarz: ${fmt(c.repaid)}`:""].filter(Boolean).join("\n")); };
+
+/* ---------- log ---------- */
+const LOGI = { open:["▶","g"], close:["✓","g"], cancel:["✕","r"], del:["✕","r"], move:["⇄",""], pause:["Ⅱ",""], resume:["▶",""], limit:["⏱",""], disc:["%","y"], debt:["Q","y"], repay:["₸","g"], kassa:["K","g"], cfg:["⚙",""], pin:["#",""], stock:["+",""] };
+function vLog(){
+  if (!S.logs.length) return `<div class="list"><div class="empty">Yuklanmoqda yoki hali yozuv yo'q…</div></div>`;
+  let out="", last="";
+  const rows=S.logs.filter(l=>!S.logOnlyRed || ["cancel","del","disc","kassa"].includes(l.type));
+  rows.forEach(l=>{ const d=dayKey(l.at); if (d!==last){ if (last) out+="</div>"; out+=`<p class="dl">${dayTxt(d)}</p><div class="list">`; last=d; }
+    const [ic,cl]=LOGI[l.type]||["•",""]; out+=`<div class="lg"><span class="ic ${cl}">${ic}</span><div>${esc(l.text)}<small>${hm(l.at)} · ${esc(l.by)}</small></div></div>`; });
+  if (last) out+="</div>";
+  return `<div class="seg"><button class="chip" data-act="logF" data-v="0" aria-pressed="${!S.logOnlyRed}">Hammasi</button><button class="chip" data-act="logF" data-v="1" aria-pressed="${!!S.logOnlyRed}">Muhimlari</button></div>
+  <p class="note">"Muhimlari" — bekor qilingan va o'chirilgan o'yinlar, chegirmalar, kassa.</p>${out||`<div class="list"><div class="empty">Yozuv yo'q</div></div>`}`;
+}
+A.logF = d => { S.logOnlyRed = d.v==="1"; render(); };
+
+/* ---------- settings ---------- */
+function vSet(){
+  return `<h3>Stollar</h3>
+  <div class="list">${S.cfg.tables.map((t,i)=>`<button class="li" data-act="tblEdit" data-i="${i}"><div>${esc(t.n)}<div class="m">Belgi: ${esc(t.b)}</div></div><b>${fmt(t.r)}/soat</b></button>`).join("")}</div>
+  <p class="note">Menyu va narxlar "Bar" bo'limida.</p>
+  <h3>Kirish kodlari</h3>
+  <button class="btn go wide" data-act="pinNew">+ Yangi kod berish</button>
+  <div class="list">${S.pins.slice().sort((a,b)=>(a.role==="egasi"?0:1)-(b.role==="egasi"?0:1)).map(p=>`<div class="li"><div>${esc(p.name)} <span class="tag ${p.role==="egasi"?"t-naqd":"t-karta"}">${ROLES[p.role]||p.role}</span><div class="m" style="font-family:var(--display);font-size:18px;letter-spacing:.12em;color:var(--fg)">${p.pin}</div></div>${p.pin===S.me.pin?`<span class="m">Siz</span>`:`<button class="btn danger" data-act="pinDel" data-pin="${p.pin}" style="min-height:36px;padding:6px 12px">O'chirish</button>`}</div>`).join("")}</div>
+  <p class="note">Ishchi: stollar, buyurtma, to'lov, nasiya, kassa. Hisobot, tarix va sozlama faqat egasida.</p>`;
+}
+A.tblEdit = d => { const t=tbl(+d.i); openSheet("tbl",{i:+d.i,n:t.n,r:String(t.r),b:t.b}); };
+SHEETS.tbl = () => `<h3>Stolni tahrirlash</h3>
+  <label class="f">Nomi${inp("n",S.f.n)}</label><label class="f">Soatiga narx (so'm)${inp("r",S.f.r,'inputmode="numeric"')}</label><label class="f">Belgi (1 harf)${inp("b",S.f.b,'maxlength="2"')}</label>
+  <p class="note">Yangi narx band stolga ham darhol qo'llanadi.</p><p class="err" id="tErr"></p>
+  <button class="btn go wide" data-act="tblSave">Saqlash</button><button class="btn ghost wide" data-act="close">Bekor</button>`;
+A.tblSave = () => { const f=S.f, n=(f.n||"").trim(), r=money(f.r), b=(f.b||"").trim()||n[0]||"?"; if (!n||!r) return $("tErr").textContent="Nom va narxni yozing.";
+  const old=tbl(f.i), tables=S.cfg.tables.map((t,i)=>i===f.i?{n,r,b}:t); setDoc(doc(db,C.cfg,"main"),{tables}).catch(failed);
+  logRef(null,"cfg",`Stol: ${old.n} ${grp(old.r)} → ${n} ${grp(r)}`); closeSheet(); };
+A.pinNew = () => { let p; do { p=String(Math.floor(100000+Math.random()*900000)); } while (S.pins.some(x=>x.pin===p)); openSheet("pin",{name:"",role:"ishchi",pin:p,done:false}); };
+SHEETS.pin = () => S.f.done ? `<h3>Kod tayyor</h3><p class="note">${esc(S.f.name)} uchun kirish kodi:</p><div class="pinBig">${S.f.pin}</div><p class="note">Shu kodni unga ayting. Ilova havolasini ochib, kodni kiritadi.</p><button class="btn go wide" data-act="close">Tushunarli</button>`
+  : `<h3>Yangi kod</h3><label class="f">Kimga?${inp("name",S.f.name,'placeholder="Masalan: Bobur"')}</label>
+  <div class="chips">${chip("f","ishchi",S.f.role,"Ishchi",'data-k="role"')}${chip("f","egasi",S.f.role,"Egasi (hammasini ko'radi)",'data-k="role"')}</div>
+  <label class="f">Kod (6 raqam)${inp("pin",S.f.pin,'inputmode="numeric" maxlength="6"')}</label><p class="err" id="pErr"></p>
+  <button class="btn go wide" data-act="pinSave">Kod berish</button><button class="btn ghost wide" data-act="close">Bekor</button>`;
+A.pinSave = () => { const f=S.f, name=(f.name||"").trim(), pin=(f.pin||"").trim();
+  if (!name) return $("pErr").textContent="Ismini yozing."; if (!/^\d{6}$/.test(pin)) return $("pErr").textContent="Kod aynan 6 ta raqam bo'lsin."; if (S.pins.some(x=>x.pin===pin)) return $("pErr").textContent="Bu kod band, boshqasini yozing.";
+  setDoc(doc(db,C.pins,pin),{name,role:f.role,at:Date.now()}).catch(failed); logRef(null,"pin",`Yangi kod: ${name} (${ROLES[f.role]})`); S.f.done=true; drawSheet(); };
+A.pinDel = d => openSheet("pinDel",{pin:d.pin});
+SHEETS.pinDel = () => { const p=S.pins.find(x=>x.pin===S.f.pin); if (!p) return null; return `<h3>Kodni o'chirish</h3><p class="note">${esc(p.name)} endi ilovaga kira olmaydi.</p><button class="btn danger wide" data-act="pinDelOk">Ha, o'chirish</button><button class="btn ghost wide" data-act="close">Bekor</button>`; };
+A.pinDelOk = () => { const p=S.pins.find(x=>x.pin===S.f.pin); if (!p || p.pin===S.me.pin) return closeSheet(); deleteDoc(doc(db,C.pins,p.pin)).catch(failed); logRef(null,"pin",`Kod o'chirildi: ${p.name}`); closeSheet(); };
+</script>
+</body>
+</html>
