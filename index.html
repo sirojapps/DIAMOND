@@ -11,7 +11,13 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"></noscript>
 <style>
 :root{
   --bg:#f5f2fa; --surface:#ffffff; --sunken:#ece7f5; --fg:#1c1530; --muted:#6b6280; --line:#ddd5ea;
@@ -205,20 +211,28 @@ pre.copy{white-space:pre-wrap;font-family:var(--body);font-size:13px;background:
 <div id="modal"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, getDoc, getDocFromServer, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, limit, increment, writeBatch, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const fb = initializeApp({
-  apiKey: "AIzaSyBiIO9oJa4C5Md0bK-l2iqUTrPobyzNWFE",
-  authDomain: "siroj-apps.firebaseapp.com",
-  projectId: "siroj-apps",
-  storageBucket: "siroj-apps.firebasestorage.app",
-  messagingSenderId: "237744873377",
-  appId: "1:237744873377:web:a4618fb3c6906500bef5e0"
-});
-const auth = getAuth(fb);
-const db = initializeFirestore(fb, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+/* Firebase fonda yuklanadi — ilova ekrani uni kutmaydi */
+let initializeApp, getAuth, signInAnonymously, onAuthStateChanged, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  collection, doc, getDoc, getDocFromServer, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, limit, increment, writeBatch, where, getDocs;
+let auth = null, db = null;
+const FBV = "https://www.gstatic.com/firebasejs/10.12.2/";
+async function loadFirebase(){
+  const [A,B,F] = await Promise.all([import(FBV+"firebase-app.js"), import(FBV+"firebase-auth.js"), import(FBV+"firebase-firestore.js")]);
+  ({ initializeApp } = A);
+  ({ getAuth, signInAnonymously, onAuthStateChanged } = B);
+  ({ initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, getDoc, getDocFromServer, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, limit, increment, writeBatch, where, getDocs } = F);
+  const fb = initializeApp({
+    apiKey: "AIzaSyBiIO9oJa4C5Md0bK-l2iqUTrPobyzNWFE",
+    authDomain: "siroj-apps.firebaseapp.com",
+    projectId: "siroj-apps",
+    storageBucket: "siroj-apps.firebasestorage.app",
+    messagingSenderId: "237744873377",
+    appId: "1:237744873377:web:a4618fb3c6906500bef5e0"
+  });
+  auth = getAuth(fb);
+  db = initializeFirestore(fb, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+}
+const fbLoading = loadFirebase();
 
 const C = { meta:"diamond_meta", pins:"diamond_pins", sess:"diamond_sessions", cfg:"diamond_cfg", tables:"diamond_tables", menu:"diamond_menu",
   games:"diamond_games", debts:"diamond_debts", dlog:"diamond_debtlog", log:"diamond_log", shifts:"diamond_shifts" };
@@ -290,19 +304,34 @@ const acked = new Set(), warned = new Set();
 
 /* ---------- start ---------- */
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+const CK = "diamond_cache";
+let cacheObj = {}, cacheT = 0;
+function cacheLoad(){ try{ cacheObj = JSON.parse(localStorage.getItem(CK)||"{}") || {}; }catch(e){ cacheObj = {}; } }
+function cacheSet(k,v){ cacheObj[k]=v; clearTimeout(cacheT); cacheT=setTimeout(()=>{ try{ localStorage.setItem(CK, JSON.stringify(cacheObj)); }catch(e){} }, 600); }
+function cacheClear(){ clearTimeout(cacheT); cacheObj={}; try{ localStorage.removeItem(CK); }catch(e){} }
+function cacheApply(){
+  const c=cacheObj;
+  if (Array.isArray(c.T) && c.T.length===4) S.T=c.T;
+  if (c.cfg && Array.isArray(c.cfg.tables)) S.cfg=c.cfg;
+  if (c.menu) S.menu=c.menu;
+  if (c.debts) S.debts=c.debts;
+  if (c.today && c.todayDay===dayKey(Date.now())) S.today=c.today;
+}
+function startAuth(){
 onAuthStateChanged(auth, async user => {
   if (!user){
-    if (!navigator.onLine){ $("loadMsg").textContent="Birinchi marta kirish uchun internet kerak."; return; }
-    signInAnonymously(auth).catch(e => { $("loadMsg").textContent = "Ulanib bo'lmadi: "+(e.code||e.message); });
+    if (!navigator.onLine){ if ($("scrApp").hidden) $("loadMsg").textContent="Birinchi marta kirish uchun internet kerak."; else $("syncTxt").textContent="Internet yo'q"; return; }
+    signInAnonymously(auth).catch(e => { if ($("scrApp").hidden) $("loadMsg").textContent = "Ulanib bo'lmadi: "+(e.code||e.message); else $("syncTxt").textContent="Ulanib bo'lmadi"; });
     return;
   }
   S.uid = user.uid;
   const saved = lsGet();
-  if (saved && saved.pin){ S.me = saved; enterApp(); verifySession(); return; }
+  if (saved && saved.pin){ S.me = saved; if ($("scrApp").hidden) showShell(); subscribe(); verifySession(); return; }
   try{ const m = await getDoc(doc(db,C.meta,"setup")); if (!m.exists()){ show("scrSetup"); return; } }
   catch(e){ if (!navigator.onLine){ $("loadMsg").textContent="Birinchi marta kirish uchun internet kerak."; return; } }
   showPin();
 });
+}
 async function verifySession(){
   if (!navigator.onLine || !S.me) return;
   try{
@@ -363,7 +392,7 @@ async function tryPin(pin){
   }
 }
 function logout(msg){
-  const uid=S.uid; lsSet(null); S.me=null; unsub.forEach(u=>u()); unsub=[]; kUnsub.forEach(u=>u()); kUnsub=[]; closeSheet();
+  const uid=S.uid; lsSet(null); cacheClear(); S.live=false; S.me=null; unsub.forEach(u=>u()); unsub=[]; kUnsub.forEach(u=>u()); kUnsub=[]; closeSheet();
   if (uid) deleteDoc(doc(db,C.sess,uid)).catch(()=>{});
   showPin(); if (msg) $("pinErr").textContent=msg;
 }
@@ -372,49 +401,55 @@ function logout(msg){
 let unsub=[], kUnsub=[], todayUnsub=null, curDay=dayKey(Date.now()), logUnsub=null;
 const pendFlag = (k,snap) => { S.pend[k]=snap.metadata.hasPendingWrites; syncUI(); };
 const denied = e => { if (e.code==="permission-denied") logout("Kodni qayta kiriting."); };
-function enterApp(){
+function enterApp(){ showShell(); subscribe(); }
+function showShell(){
   show("scrApp");
   $("me").textContent = S.me.name+" · "+(ROLES[S.me.role]||"");
   if (!isOwner() && ["report","log","set"].includes(S.tab)) S.tab="tables";
+  if (!S.live) $("syncTxt").textContent = "Ulanmoqda…";
+  render();
+}
+function subscribe(){
   unsub.forEach(u=>u()); unsub=[];
-  unsub.push(onSnapshot(doc(db,C.cfg,"main"), s=>{ if (s.exists() && Array.isArray(s.data().tables)) S.cfg={tables:DEF_TABLES.map((d,i)=>({...d,...(s.data().tables[i]||{})}))}; render(); refreshSheet(); }, denied));
+  unsub.push(onSnapshot(doc(db,C.cfg,"main"), s=>{ if (s.exists() && Array.isArray(s.data().tables)) S.cfg={tables:DEF_TABLES.map((d,i)=>({...d,...(s.data().tables[i]||{})}))}; cacheSet("cfg",S.cfg); renderSoon(); refreshSheet(); }, denied));
   unsub.push(onSnapshot(collection(db,C.tables),{includeMetadataChanges:true}, s=>{
     s.docs.forEach(d=>{ const i=+d.id.slice(1); if (i>=0&&i<4) S.T[i]=d.data(); });
-    pendFlag("t",s); render(); refreshSheet();
+    S.live=true; cacheSet("T",S.T);
+    pendFlag("t",s); renderSoon(); refreshSheet();
   }, denied));
   unsub.push(onSnapshot(collection(db,C.menu),{includeMetadataChanges:true}, s=>{
-    const n={}; s.docs.forEach(d=>n[d.id]={id:d.id,...d.data()}); S.menu=n; pendFlag("m",s); render(); refreshSheet();
+    const n={}; s.docs.forEach(d=>n[d.id]={id:d.id,...d.data()}); S.menu=n; cacheSet("menu",n); pendFlag("m",s); renderSoon(); refreshSheet();
   }, ()=>{}));
   unsub.push(onSnapshot(collection(db,C.debts),{includeMetadataChanges:true}, s=>{
-    const n={}; s.docs.forEach(d=>n[d.id]={id:d.id,...d.data()}); S.debts=n; pendFlag("d",s); render(); refreshSheet();
+    const n={}; s.docs.forEach(d=>n[d.id]={id:d.id,...d.data()}); S.debts=n; cacheSet("debts",n); pendFlag("d",s); renderSoon(); refreshSheet();
   }, ()=>{}));
   unsub.push(onSnapshot(doc(db,C.meta,"kassa"), s=>{
     const at = s.exists() ? (s.data().at||0) : 0;
     if (at!==S.kassaAt || !kUnsub.length){ S.kassaAt=at; subKassa(); }
   }, ()=>{}));
-  if (isOwner()) unsub.push(onSnapshot(collection(db,C.pins), s=>{ S.pins=s.docs.map(d=>({pin:d.id,...d.data()})); if (S.tab==="set") render(); }, ()=>{}));
+  if (isOwner()) unsub.push(onSnapshot(collection(db,C.pins), s=>{ S.pins=s.docs.map(d=>({pin:d.id,...d.data()})); if (S.tab==="set") renderSoon(); }, ()=>{}));
   subToday();
-  render();
+  renderSoon();
 }
 function subToday(){
   if (todayUnsub) todayUnsub();
   curDay=dayKey(Date.now());
   todayUnsub = onSnapshot(query(collection(db,C.games),where("day","==",curDay)),{includeMetadataChanges:true}, s=>{
-    S.today=s.docs.map(d=>({id:d.id,...d.data()})); pendFlag("g",s); render();
+    S.today=s.docs.map(d=>({id:d.id,...d.data()})); cacheSet("today",S.today); cacheSet("todayDay",curDay); pendFlag("g",s); renderSoon();
   }, ()=>{});
   unsub.push(()=>{ if (todayUnsub){ todayUnsub(); todayUnsub=null; } });
 }
 function subKassa(){
   kUnsub.forEach(u=>u()); kUnsub=[];
   const since=S.kassaAt||0;
-  kUnsub.push(onSnapshot(query(collection(db,C.games),where("at",">=",since)), s=>{ S.kGames=s.docs.map(d=>({id:d.id,...d.data()})); if (S.tab==="kassa") render(); refreshSheet(); }, ()=>{}));
-  kUnsub.push(onSnapshot(query(collection(db,C.dlog),where("at",">=",since)), s=>{ S.kDlog=s.docs.map(d=>({id:d.id,...d.data()})); if (S.tab==="kassa") render(); refreshSheet(); }, ()=>{}));
-  kUnsub.push(onSnapshot(query(collection(db,C.shifts),orderBy("at","desc"),limit(10)), s=>{ S.shifts=s.docs.map(d=>({id:d.id,...d.data()})); if (S.tab==="kassa") render(); }, ()=>{}));
+  kUnsub.push(onSnapshot(query(collection(db,C.games),where("at",">=",since)), s=>{ S.kGames=s.docs.map(d=>({id:d.id,...d.data()})); if (S.tab==="kassa") renderSoon(); refreshSheet(); }, ()=>{}));
+  kUnsub.push(onSnapshot(query(collection(db,C.dlog),where("at",">=",since)), s=>{ S.kDlog=s.docs.map(d=>({id:d.id,...d.data()})); if (S.tab==="kassa") renderSoon(); refreshSheet(); }, ()=>{}));
+  kUnsub.push(onSnapshot(query(collection(db,C.shifts),orderBy("at","desc"),limit(10)), s=>{ S.shifts=s.docs.map(d=>({id:d.id,...d.data()})); if (S.tab==="kassa") renderSoon(); }, ()=>{}));
 }
 function subLog(on){
   if (logUnsub){ logUnsub(); logUnsub=null; }
   if (!on) return;
-  logUnsub = onSnapshot(query(collection(db,C.log),orderBy("at","desc"),limit(200)), s=>{ S.logs=s.docs.map(d=>d.data()); if (S.tab==="log") render(); }, ()=>{});
+  logUnsub = onSnapshot(query(collection(db,C.log),orderBy("at","desc"),limit(200)), s=>{ S.logs=s.docs.map(d=>d.data()); if (S.tab==="log") renderSoon(); }, ()=>{});
 }
 function syncUI(){
   const off=!navigator.onLine, pend=Object.values(S.pend).some(Boolean);
@@ -428,6 +463,8 @@ function logRef(b, type, text, extra={}){ const r=doc(collection(db,C.log)); con
 const tref = i => doc(db,C.tables,"t"+i);
 
 /* ---------- render ---------- */
+let rq = 0;
+function renderSoon(){ if (rq) return; rq = requestAnimationFrame(()=>{ rq=0; render(); }); }
 const TABS = () => [["tables","Stollar"],["debts","Nasiya"],["kassa","Kassa"],["bar","Bar"], ...(isOwner()?[["report","Hisobot"],["log","Tarix"],["set","Sozlama"]]:[])];
 function render(){
   if (!S.me || $("scrApp").hidden) return;
@@ -485,7 +522,7 @@ function liGame(g){
 /* tick: clocks, limits, alarms */
 setInterval(()=>{
   if (!S.me) return;
-  if (dayKey(Date.now())!==curDay) subToday();
+  if (S.live && dayKey(Date.now())!==curDay) subToday();
   const now=Date.now(); let needRender=false;
   S.T.forEach((t,i)=>{
     if (!t.start) return;
@@ -523,6 +560,7 @@ document.addEventListener("click", e=>{
   unlockAudio();
   if (e.target.matches?.("[data-scrim]")){ closeSheet(); return; }
   const b=e.target.closest("[data-act]"); if (!b || b.disabled) return;
+  if (!S.live && !["tab","close","logF"].includes(b.dataset.act)){ toast("Ulanmoqda… bir soniya kuting"); return; }
   const fn=A[b.dataset.act]; if (fn) fn(b.dataset, b);
 });
 document.addEventListener("input", e=>{ const el=e.target; if (el.dataset?.bind){ S.f[el.dataset.bind] = el.type==="checkbox" ? el.checked : el.value; if (el.dataset.live) liveUpdate(); } });
@@ -961,6 +999,16 @@ A.pinSave = () => { const f=S.f, name=(f.name||"").trim(), pin=(f.pin||"").trim(
 A.pinDel = d => openSheet("pinDel",{pin:d.pin});
 SHEETS.pinDel = () => { const p=S.pins.find(x=>x.pin===S.f.pin); if (!p) return null; return `<h3>Kodni o'chirish</h3><p class="note">${esc(p.name)} endi ilovaga kira olmaydi.</p><button class="btn danger wide" data-act="pinDelOk">Ha, o'chirish</button><button class="btn ghost wide" data-act="close">Bekor</button>`; };
 A.pinDelOk = () => { const p=S.pins.find(x=>x.pin===S.f.pin); if (!p || p.pin===S.me.pin) return closeSheet(); deleteDoc(doc(db,C.pins,p.pin)).catch(failed); logRef(null,"pin",`Kod o'chirildi: ${p.name}`); closeSheet(); };
+
+/* ---------- ishga tushirish (hamma narsa e'lon qilingandan keyin) ---------- */
+// Kirgan foydalanuvchi uchun ilova darhol, oxirgi saqlangan holat bilan chiziladi; Firebase fonda ulanadi.
+const saved0 = lsGet();
+if (saved0 && saved0.pin){ S.me = saved0; cacheLoad(); if (Array.isArray(cacheObj.T) && cacheObj.T.length===4){ cacheApply(); showShell(); } }
+fbLoading.then(startAuth).catch(e => {
+  console.error(e);
+  if (!$("scrApp").hidden){ $("syncTxt").textContent = navigator.onLine ? "Ulanib bo'lmadi. Ilovani qayta oching." : "Internet yo'q"; }
+  else $("loadMsg").textContent = navigator.onLine ? "Ulanib bo'lmadi. Ilovani qayta oching." : "Birinchi marta kirish uchun internet kerak.";
+});
 </script>
 </body>
 </html>
