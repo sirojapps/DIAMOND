@@ -1,4 +1,4 @@
-const CACHE = "diamond-v3";
+const CACHE = "diamond-v4";
 const CORE = ["./", "./index.html", "./manifest.json", "./icon-192.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
@@ -24,7 +24,7 @@ self.addEventListener("fetch", e => {
     );
   } else if (["www.gstatic.com", "fonts.googleapis.com", "fonts.gstatic.com"].includes(u.hostname)) {
     e.respondWith(
-      caches.match(r).then(m => m || fetch(r).then(res => { const cp = res.clone(); caches.open(CACHE).then(c => c.put(r, cp)); return res; }))
+      caches.match(r).then(m => m || fetch(r).then(res => { if (res && res.ok) { const cp = res.clone(); caches.open(CACHE).then(c => c.put(r, cp)); } return res; }))
     );
   }
 });

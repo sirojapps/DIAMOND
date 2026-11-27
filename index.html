@@ -173,7 +173,7 @@ pre.copy{white-space:pre-wrap;font-family:var(--body);font-size:13px;background:
 </head>
 <body>
 
-<div class="gate" id="scrLoad"><div class="logo"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 18 3-18M6 3l3 6 3-6 3 6 3-6"/></svg></div><p class="note" id="loadMsg">Yuklanmoqda…</p></div>
+<div class="gate" id="scrLoad"><div class="logo"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 18 3-18M6 3l3 6 3-6 3 6 3-6"/></svg></div><p class="note" id="loadMsg">Yuklanmoqda…</p><button class="btn go" id="retryBtn" data-retry="1" hidden>Qayta urinish</button></div>
 
 <div class="gate" id="scrSetup" hidden>
   <div class="logo"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 18 3-18M6 3l3 6 3-6 3 6 3-6"/></svg></div>
@@ -212,15 +212,16 @@ pre.copy{white-space:pre-wrap;font-family:var(--body);font-size:13px;background:
 
 <script type="module">
 /* Firebase fonda yuklanadi — ilova ekrani uni kutmaydi */
-let initializeApp, getAuth, signInAnonymously, onAuthStateChanged, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+let initializeApp, getAuth, initializeAuth, browserLocalPersistence, indexedDBLocalPersistence, signInAnonymously, onAuthStateChanged, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, memoryLocalCache,
   collection, doc, getDoc, getDocFromServer, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, limit, increment, writeBatch, where, getDocs;
 let auth = null, db = null;
+const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
 const FBV = "https://www.gstatic.com/firebasejs/10.12.2/";
 async function loadFirebase(){
   const [A,B,F] = await Promise.all([import(FBV+"firebase-app.js"), import(FBV+"firebase-auth.js"), import(FBV+"firebase-firestore.js")]);
   ({ initializeApp } = A);
-  ({ getAuth, signInAnonymously, onAuthStateChanged } = B);
-  ({ initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, getDoc, getDocFromServer, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, limit, increment, writeBatch, where, getDocs } = F);
+  ({ getAuth, initializeAuth, browserLocalPersistence, indexedDBLocalPersistence, signInAnonymously, onAuthStateChanged } = B);
+  ({ initializeFirestore, persistentLocalCache, persistentMultipleTabManager, memoryLocalCache, collection, doc, getDoc, getDocFromServer, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, limit, increment, writeBatch, where, getDocs } = F);
   const fb = initializeApp({
     apiKey: "AIzaSyBiIO9oJa4C5Md0bK-l2iqUTrPobyzNWFE",
     authDomain: "siroj-apps.firebaseapp.com",
@@ -229,8 +230,14 @@ async function loadFirebase(){
     messagingSenderId: "237744873377",
     appId: "1:237744873377:web:a4618fb3c6906500bef5e0"
   });
-  auth = getAuth(fb);
-  db = initializeFirestore(fb, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+  // iPhone/iPad (Safari): IndexedDB va oddiy ulanish ba'zan osilib qoladi — u yerda localStorage, xotira keshi va long-polling ishlatiladi
+  if (IOS){
+    try{ auth = initializeAuth(fb, { persistence: [browserLocalPersistence, indexedDBLocalPersistence] }); }catch(e){ auth = getAuth(fb); }
+    db = initializeFirestore(fb, { experimentalForceLongPolling: true, localCache: memoryLocalCache() });
+  } else {
+    auth = getAuth(fb);
+    db = initializeFirestore(fb, { experimentalAutoDetectLongPolling: true, localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+  }
 }
 const fbLoading = loadFirebase();
 
@@ -304,6 +311,20 @@ const acked = new Set(), warned = new Set();
 
 /* ---------- start ---------- */
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+// Qayta urinish: eski keshni tozalab, ilovani yangidan ochadi
+async function hardReload(){
+  try{ const rs = await navigator.serviceWorker?.getRegistrations(); if (rs) await Promise.all(rs.map(r=>r.unregister())); }catch(e){}
+  try{ const ks = await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }catch(e){}
+  location.reload();
+}
+document.addEventListener("click", e => { const r = e.target.closest("[data-retry]"); if (r && (r.id!=="sync" || !S.live)) hardReload(); });
+// Ulanish 12 soniyada o'rnatilmasa — ekran qotib turmaydi, xabar va tugma chiqadi
+setTimeout(() => {
+  if (!$("scrLoad").hidden){ $("loadMsg").textContent = "Ulanib bo'lmadi. Internetni tekshiring va qayta urinib ko'ring."; $("retryBtn").hidden = false; }
+}, 12000);
+setTimeout(() => {
+  if (!$("scrApp").hidden && !S.live){ $("syncTxt").textContent = "Ulanib bo'lmadi · bosing"; $("sync").dataset.retry = "1"; }
+}, 15000);
 const CK = "diamond_cache";
 let cacheObj = {}, cacheT = 0;
 function cacheLoad(){ try{ cacheObj = JSON.parse(localStorage.getItem(CK)||"{}") || {}; }catch(e){ cacheObj = {}; } }
